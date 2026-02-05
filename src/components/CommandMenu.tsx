@@ -9,13 +9,11 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import {
-  Laptop,
   Moon,
   Sun,
   Home,
   FileText,
   User,
-  Code,
   Github,
   Twitter,
   Linkedin,
