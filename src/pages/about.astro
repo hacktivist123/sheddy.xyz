@@ -1,0 +1,105 @@
+---
+import Layout from "../layouts/Layout.astro";
+import TechStack from "../components/TechStack.astro";
+---
+
+<Layout title="About - Shedrack Akintayo">
+    <div class="container mx-auto max-w-3xl px-4 py-16">
+        <section class="py-12">
+            <h1 class="text-4xl font-bold tracking-tight">About</h1>
+        </section>
+
+        <div class="grid gap-12 md:grid-cols-[2fr_1fr]">
+            <section class="prose prose-neutral dark:prose-invert max-w-none">
+                <p>
+                    I bridge the gap between complex technology and human
+                    understanding. As a Technical Writer with deep expertise in
+                    DevOps and cloud architecture, I transform intricate technical
+                    concepts into clear, actionable documentation while architecting
+                    scalable cloud solutions.
+                </p>
+
+                <h2>What I Do</h2>
+
+            <h3>Technical Writing & Documentation Architecture</h3>
+            <ul>
+                <li>
+                    Design and maintain comprehensive documentation systems for
+                    cloud-native applications
+                </li>
+                <li>
+                    Create developer-focused content for APIs, SDKs, and
+                    infrastructure tools
+                </li>
+                <li>
+                    Develop architectural decision records (ADRs) and technical
+                    specifications
+                </li>
+                <li>
+                    Write tutorials and guides that emphasize best practices in
+                    cloud-native development
+                </li>
+            </ul>
+
+            <h3>DevOps & Solutions Architecture</h3>
+            <ul>
+                <li>
+                    Design resilient cloud architectures focusing on scalability
+                    and security
+                </li>
+                <li>
+                    Implement Infrastructure as Code (IaC) using Terraform and
+                    AWS CloudFormation
+                </li>
+                <li>
+                    Orchestrate containerized applications with Kubernetes and
+                    service mesh solutions
+                </li>
+                <li>
+                    Establish CI/CD pipelines using GitHub Actions and ArgoCD
+                </li>
+                <li>
+                    Set up observability stacks with Prometheus, Grafana, and
+                    ELK
+                </li>
+            </ul>
+
+            <h2>Tech Stack</h2>
+            <TechStack />
+
+            <h2>Beyond the Screen</h2>
+            <p>
+                When I'm not architecting cloud systems or writing documentation, I'm a dedicated athlete. 
+                I cross-train in strength, Muay Thai, running, and football. 
+                I believe the discipline and resilience built in sports directly translate to engineering excellence.
+            </p>
+
+            <h2>Let's Connect</h2>
+            <p>
+                I'm always interested in discussing documentation strategies for
+                complex technical products, cloud architecture and
+                infrastructure automation, DevOps best practices and
+                implementation patterns.
+            </p>
+            <p>
+                Feel free to reach out through <a
+                    href="https://linkedin.com/in/shedrackakintayo">LinkedIn</a
+                > or check out my projects on <a
+                    href="https://github.com/hacktivist123">GitHub</a
+                >.
+            </p>
+        </section>
+
+        <div class="order-first md:order-last">
+            <div class="relative">
+                <div class="absolute inset-0 rotate-6 rounded-2xl bg-gradient-to-tr from-primary/20 to-secondary/20"></div>
+                <img 
+                    src="/me.jpg" 
+                    alt="Shedrack Akintayo" 
+                    class="relative rotate-3 rounded-2xl shadow-xl transition-all duration-300 hover:rotate-0 hover:scale-[1.02]"
+                />
+            </div>
+        </div>
+    </div>
+    </div>
+</Layout>

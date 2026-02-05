@@ -1,0 +1,73 @@
+---
+title: 'Services in Linux'
+draft: false
+date: 2024-07-18
+summary: "A short introduction to creating Services in Linux"
+tags:
+  - Linux
+---
+
+Services in Linux help you configure software to run in the background as well as follow the right order of startup.
+
+## Useful Commands For Managing Services in Linux
+
+- To start a service, run any of the following commands:
+    
+    ```Bash
+    service <service-name> start # Debian, RHEL, SLES
+    
+    systemctl start <service-name> # For Linux distributions that use systemd as their init system
+    ```
+    
+- To stop a service, run the following command:
+    
+    ```Bash
+    systemctl stop <service-name>
+    ```
+    
+- To check the status of a service run the following command:
+    
+    ```Bash
+    systemctl status <service-name>
+    ```
+    
+- To configure a service to run at system boot, run the following command:
+    
+    ```Bash
+    systemctl enable <service-name>
+    ```
+    
+- To disable a service from running at system boot, run the following command:
+    
+    ```Bash
+    systemctl disable <service-name>
+    ```
+
+## How To Configure a Program To Run As a Service in Linux
+To create a service, you need to configure it using a systemd unit file. Name the file after the service you want to create and save it in the `/usr/lib/systemd/system` directory with a `.service` extension.
+
+Use the following template to set up your service:
+    
+```bash
+# my_app.service
+
+[Unit]
+Description= <service description>
+
+[Service]
+ExectStart=<command used to run the program>
+ExecStartPre=<Command to run before starting the program>
+ExecStartPost=<Command to run after starting the program>
+Restart=always # will restart the service if it crashes
+
+[Install] # useful for allowing service to start at boot
+WantedBy=multi-user.target
+```    
+
+Now, run the following command to reload the system
+
+```bash
+systemctl daemon-reload
+```
+
+You can now manage the service using the commands mentioned above!

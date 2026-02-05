@@ -1,0 +1,187 @@
+---
+title: "Building Pull Base - Type-Safe Database Operations in Go"
+draft: false
+date: "2025-06-01"
+summary: "Explore how Pull Base implements a type-safe approach to database operations using Go's strong typing and the sqlx library, tackling nuances like NULL handling and struct mapping."
+tags: ['Go', 'SQL', 'Databases', 'Pull Base']
+images: ['/static/images/type-safe-database-operations.png']
+---
+
+The database layer is often the most critical component of any backend application. In [Pull Base](pullbase.io), we've implemented a type-safe approach to database operations that leverages Go's strong typing while handling the nuances of working with SQL databases. This post explores our approach and the lessons learned.
+
+## Leveraging sqlx for Type-Safe Operations
+
+While Go's standard `database/sql` package provides a solid foundation, it lacks conveniences for mapping between SQL and Go types. In Pull Base, we use the [sqlx](https://github.com/jmoiron/sqlx) library to bridge this gap, providing type-safe query execution and efficient struct mapping.
+
+The foundation of our approach is a simple Repository pattern:
+
+```go
+// Repository handles all database operations
+type Repository struct {
+    *sqlx.DB
+}
+
+// NewRepository creates a new repository instance
+func NewRepository(db *sqlx.DB) *Repository {
+    return &Repository{DB: db}
+}
+```
+
+This approach embeds the sqlx.DB connection, giving our repository access to all the database methods while allowing us to add domain-specific operations.
+
+## Struct Tags: The Key to Mapping
+
+Our domain models use struct tags to define how database fields map to Go struct fields:
+
+```go
+// Server represents a registered server configuration
+type Server struct {
+    ID               string    `json:"id" db:"id"`
+    Name             string    `json:"name" db:"name"`
+    Branch           string    `json:"branch" db:"branch"`
+    CreatedAt        time.Time `json:"created_at" db:"created_at"`
+    UpdatedAt        time.Time `json:"updated_at" db:"updated_at"`
+}
+```
+These struct tags serve a dual purpose:
+
+1. The `db` tags map database column names to struct fields
+2. The `json` tags support seamless JSON serialization/deserialization
+
+This approach eliminates the need for manual field mapping and reduces the risk of typos or mismatched types.
+
+## Type-Safe Query Execution with `GetContext`
+
+Pull Base leverages [sqlx's `GetContext` method](https://github.com/jmoiron/sqlx/blob/41dac167fdad5e3fd81d66cafba0951dc6823a30/sqlx_context.go#L147) to map SQL result rows directly to Go structs, simplifying data retrieval and ensuring type safety.
+
+Consider the `GetServerByID` method from our repository:
+
+```go
+func (r *Repository) GetServerByID(ctx context.Context, id string) (*models.Server, error) {
+    var server models.Server
+    query := `
+        SELECT id, name, repo_url, branch, deploy_path, target_commit_hash, auto_reconcile, created_at, updated_at
+        FROM servers WHERE id = $1
+    `
+    err := r.DB.GetContext(ctx, &server, query, id) // Using GetContext
+
+    if err != nil {
+        if errors.Is(err, sql.ErrNoRows) { // Using errors.Is for checking specific error type
+            return nil, ErrNotFound
+        }
+        return nil, fmt.Errorf("failed to get server by ID %s: %w", id, err) // Preserving error context
+    }
+    return &server, nil
+}
+```
+
+This code demonstrates how sqlx streamlines data retrieval:
+
+1. We define a SQL query and a variable of the target struct type (`models.Server`).
+2. `r.DB.GetContext` is called with the context, a pointer to the `server` struct, the query string, and any query arguments. sqlx executes the query and automatically scans the result row into the `server` struct fields based on the `db` tags.
+3. Error handling is crucial. We use `errors.Is(err, sql.ErrNoRows)` to specifically check if the query returned no rows, mapping this to our custom `ErrNotFound`. For other errors, we return a new error that wraps the original, preserving valuable context.
+
+This approach not only reduces boilerplate but also enhances type safety. If the struct fields or their types don't align with the columns returned by the query, sqlx will typically return an error, helping to catch mismatches early in development.
+
+## Handling NULL Values with Pointer Types
+
+One of the trickiest aspects of database programming in Go is handling NULL values. In SQL, a column can be NULL, but Go's basic types can't represent this state directly. Pull Base uses pointer types for nullable fields:
+
+```go
+// AgentStatus represents the current status of an agent
+type AgentStatus struct {
+    ID           int       `json:"id" db:"id"`
+    ServerID     string    `json:"server_id" db:"server_id"`
+    CommitHash   string    `json:"commit_hash" db:"commit_hash"`
+    Status       string    `json:"status" db:"status"`
+    ErrorMessage *string   `json:"error_message,omitempty" db:"error_message"`
+}
+```
+
+Notice how `ErrorMessage` is defined as `*string` rather than `string`. This allows us to represent three states:
+
+1. A non-nil pointer to a non-empty string (error message present)
+2. A non-nil pointer to an empty string (explicitly empty error message)
+3. A nil pointer (no error message/NULL in database)
+
+This distinction is crucial for proper error handling in Pull Base.
+
+## Handling the Empty String vs. NULL Dilemma
+
+One of the patterns we developed in Pull Base is a clean approach to the age-old database problem: what's the difference between an empty string and NULL, and how should we handle it?
+
+Our `CreateAgentStatus` method showcases this pattern:
+
+```go
+// Helper function to get the effective error message (empty string if nil)
+getEffectiveErrorMessage := func(errMsgPtr *string) string {
+    if errMsgPtr == nil {
+        return ""
+    }
+    return *errMsgPtr
+}
+
+latestErrorMsg := getEffectiveErrorMessage(latestStatus.ErrorMessage)
+currentErrorMsg := getEffectiveErrorMessage(status.ErrorMessage)
+errorChanged = latestErrorMsg != currentErrorMsg
+```
+
+This helper function normalizes our comparison by treating `NULL` and empty string as equivalent. This semantic decision makes sense for our application - an absent error message and an explicitly empty error message have the same meaning.
+
+## Using `NULLIF` for Clean NULL Handling in SQL
+
+When dealing with complex joins and NULL values, we leverage PostgreSQL's `NULLIF` function:
+
+```sql
+query := `
+    SELECT
+        s.id, s.name, /* ... other fields ... */
+        NULLIF(latest_status.commit_hash, '') AS last_commit_hash,
+        NULLIF(latest_status.status, '') AS last_status,
+        latest_status.is_drifted AS last_is_drifted,
+        NULLIF(latest_status.error_message, '') AS last_error_message,
+        latest_status.agent_timestamp AS last_timestamp
+    FROM
+        servers s
+    LEFT JOIN LATERAL (
+        SELECT
+            id, commit_hash, status, is_drifted, error_message, agent_timestamp
+        FROM
+            agent_status
+        WHERE
+            server_id = s.id
+        ORDER BY
+            agent_timestamp DESC, id DESC
+        LIMIT 1
+    ) latest_status ON true
+    WHERE s.id = $1
+`
+```
+
+The `NULLIF` function converts empty strings to NULL values, which maps cleanly to our nil pointers in Go. This approach gives us consistent behavior regardless of whether the database stores empty strings or NULLs.
+
+## Parameter Binding: Named vs. Positional
+
+Pull Base uses both positional parameters and named parameters depending on the context:
+```go
+// Positional parameters
+_, err = r.DB.ExecContext(ctx, query, username, hashedPassword, role)
+
+// Named parameters
+query := `
+    INSERT INTO agent_status
+      (server_id, commit_hash, is_drifted, status, error_message, agent_timestamp)
+    VALUES
+      (:server_id, :commit_hash, :is_drifted, :status, :error_message, :agent_timestamp)
+    RETURNING id
+`
+stmt, err := r.DB.PrepareNamedContext(ctx, query)
+```
+
+Named parameters improve readability for complex queries or when using struct mapping, while positional parameters are simpler for basic queries.
+
+## Conclusion
+
+Pull Base's approach to type-safe database operations demonstrates how to leverage Go's type system and sqlx's conveniences to create a robust database layer. By using struct tags for mapping, pointer types for NULL handling, and consistent patterns for error handling, we've created a database layer that is both type-safe and maintainable.
+
+These patterns can be applied to any Go application that interacts with a relational database, providing a clean and type-safe approach to data access. 

@@ -1,0 +1,63 @@
+---
+import {
+    siKubernetes,
+    siTerraform,
+    siDocker,
+    siCilium,
+    siGo,
+    siGithubactions,
+    siPrometheus,
+    siGrafana,
+    siLinux,
+    siTraefikproxy,
+    siJavascript,
+} from "simple-icons";
+
+const siAmazonwebservices = {
+    title: "AWS",
+    slug: "aws",
+    hex: "232F3E",
+    path: "M17.5 19c3.037 0 5.5-2.463 5.5-5.5c0-1.4-0.52-2.686-1.385-3.679c0.236-0.584 0.385-1.226 0.385-1.905c0-2.761-2.239-5-5-5c-0.428 0-0.844 0.054-1.242 0.155C14.735 1.164 12.822 0 10.5 0C6.916 0 4 2.916 4 6.5c0 0.286 0.019 0.567 0.054 0.843C1.637 8.163 0 10.395 0 13c0 3.313 2.687 6 6 6h11.5z",
+};
+
+const skills = [
+    { name: "Linux", icon: siLinux, color: "hover:text-[#FCC624]" },
+    { name: "Go", icon: siGo, color: "hover:text-[#00ADD8]" },
+    { name: "JavaScript", icon: siJavascript, color: "hover:text-[#F7DF1E]" },
+    { name: "Kubernetes", icon: siKubernetes, color: "hover:text-[#326CE5]" },
+    { name: "Docker", icon: siDocker, color: "hover:text-[#2496ED]" },
+    { name: "AWS", icon: siAmazonwebservices, color: "hover:text-[#232F3E]" },
+    { name: "Terraform", icon: siTerraform, color: "hover:text-[#7B42BC]" },
+    { name: "Cilium", icon: siCilium, color: "hover:text-[#F8C200]" },
+    { name: "Traefik", icon: siTraefikproxy, color: "hover:text-[#24A1C1]" },
+    {
+        name: "GitHub Actions",
+        icon: siGithubactions,
+        color: "hover:text-[#2088FF]",
+    },
+    { name: "Prometheus", icon: siPrometheus, color: "hover:text-[#E6522C]" },
+    { name: "Grafana", icon: siGrafana, color: "hover:text-[#F46800]" },
+];
+---
+
+<div
+    class="not-prose grid grid-cols-2 sm:grid-cols-3 gap-3 my-8"
+>
+    {
+        skills.map((skill) => (
+            <div
+                class={`flex items-center gap-3 rounded-lg border border-border bg-card/50 px-3 py-2 text-sm transition-colors ${skill.color} hover:bg-accent/50 hover:border-accent`}
+            >
+                <svg
+                    role="img"
+                    viewBox="0 0 24 24"
+                    class="h-5 w-5 fill-current shrink-0"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <path d={skill.icon.path} />
+                </svg>
+                <span class="font-medium text-foreground">{skill.name}</span>
+            </div>
+        ))
+    }
+</div>

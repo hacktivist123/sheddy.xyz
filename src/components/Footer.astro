@@ -1,0 +1,39 @@
+---
+import { TimeDisplay } from './TimeDisplay';
+
+const currentYear = new Date().getFullYear();
+
+const socialLinks = [
+  { href: 'https://github.com/hacktivist123', label: 'GitHub' },
+  { href: 'https://twitter.com/coder_blvck', label: 'Twitter' },
+  { href: 'https://linkedin.com/in/shedrackakintayo', label: 'LinkedIn' },
+];
+---
+
+<footer class="border-t border-border/40 py-8">
+  <div class="container mx-auto max-w-3xl px-4">
+    <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+        <p class="text-sm text-muted-foreground">
+          © {currentYear} Shedrack Akintayo
+        </p>
+        <span class="hidden text-muted-foreground sm:inline">·</span>
+        <div class="text-sm">
+          <TimeDisplay client:load />
+        </div>
+      </div>
+      <nav class="flex gap-4">
+        {socialLinks.map(link => (
+          <a 
+            href={link.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            {link.label}
+          </a>
+        ))}
+      </nav>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,51 @@
+---
+const projects = [
+    {
+        title: "PullBase",
+        description:
+            "Gitops-based Configuration Management Platform built with Go.",
+        href: "https://pullbase.io",
+    },
+    {
+        title: "GoIgnore",
+        description:
+            "A lightweight CLI tool for generating .gitignore files instantly.",
+        href: "https://github.com/hacktivist123/goignore",
+    },
+    {
+        title: "Kpeek",
+        description:
+            "A comprehensive Kubernetes troubleshooting tool and cluster explorer.",
+        href: "https://github.com/hacktivist123/kpeek",
+    },
+    {
+        title: "DevOps Learning Plan",
+        description:
+            "A structured roadmap and resources for mastering DevOps and Cloud Native technologies.",
+        href: "https://github.com/hacktivist123/DevOps-Learning-Plan",
+    },
+];
+---
+
+<section class="py-12">
+    <h2 class="mb-6 text-lg font-medium">Selected Projects</h2>
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {
+            projects.map((project) => (
+                <a
+                    href={project.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="group flex flex-col gap-2 rounded-lg border border-border bg-card p-4 transition-all hover:bg-accent/50 hover:shadow-sm"
+                >
+                    <h3 class="font-medium text-foreground group-hover:underline">
+                        {project.title}
+                    </h3>
+                    <p class="text-sm text-muted-foreground">
+                        {project.description}
+                    </p>
+                </a>
+            ))
+        }
+    </div>
+</section>

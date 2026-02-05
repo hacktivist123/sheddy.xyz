@@ -1,0 +1,142 @@
+---
+title: "Understanding and Building AI Agents"
+draft: false
+date: "2025-11-22"
+summary: "A Practical Guide to AI Agents: How They Work and How To Build Them Reliably"
+images: ['/static/images/understand-and-building-ai-agents.png']
+tags: [AI]
+---
+
+I've been doing a lot of research and learning about AI agents and its been very fascinating. I've been able to build a few agents and I've learned a lot about how they work and how to build them reliably.
+
+In this blog post, I'll be sharing some of my notes and insights about AI agents.
+
+## What are AI Agents?
+
+AI agents are simply language models equipped to execute complex tasks, not just respond to prompts. Think of a regular LLM as someone who can give great advice but can't directly do anything. An AI agent is that same person but now with access to tools, context, memory, and the ability to take action.
+
+To understand them clearly, let's break things down.
+
+## What Makes Up an AI Agent?
+
+AI agents have three core components:
+
+### 1. Model
+
+This is the brain. It's the LLM and is responsible for thinking, understanding context, and choosing what happens next, including when to call a tool.
+
+Its most important job is deciding what context matters at each step. In complex workflows, this is critical because context limits (token window) force the model to be smart about what it pays attention to.
+
+### 2. Tools
+
+These give the agent access to the outside world. They could be:
+
+- APIs
+- Database queries
+- Code functions
+- Vector stores (for RAG)
+- Internal knowledge repositories
+
+Without tools, the agent is just a smart box. With tools, it can perform actions.
+
+### 3. Orchestration Layer
+
+This is the operational control room. It:
+
+- Plans and executes the [reasoning loop](https://www.glean.com/blog/a-complete-guide-to-agentic-reasoning)
+- Defines the agent persona via system prompts or constitutions
+- Manages short and long-term memory
+- Coordinates the interaction between the model and tools
+
+Think of it as the agent's "operating system".
+
+Here's a diagram to visualise how the agent operates:
+
+![How an Agent Handles a Task](/static/images/agent-operational-loop.png)
+
+## How an Agent Handles a Task
+
+The diagram below shows the typical operational loop of an AI agent:
+
+![How an Agent Handles a Task](/static/images/how-ai-agents-work.png)
+
+## AI Agents Taxonomy
+
+Not all agents are equal. Capability levels matter when scoping what your agent can do.
+
+![AI Agents Taxonomy](/static/images/ai-agents-taxonomy.png)
+
+| Level | Description |
+|-------|-------------|
+| 0 | Just the LLM. No tools. |
+| 1 | LLM + tools. Can reason and interact with external systems. |
+| 2 | Strategic problem solver. Uses context engineering to adapt its inputs step by step. |
+| 3 | Multiple agents working together. Agents treat other agents as tools. |
+| 4 | Self-evolving agents. Can detect capability gaps and try to fix them autonomously. |
+
+## Building AI Agents Reliably
+
+Having an agent is not enough. Reliability determines production readiness.
+
+Here are some key reliability principles:
+
+### 1. Pick the Right Model
+
+You don't always need the biggest or most powerful model. Your choice should depend on the type of reasoning needed. Often, teams use "[model routing](https://medium.com/google-cloud/a-developers-guide-to-model-routing-1f21ecc34d60)" which involves assigning different tasks to different models.
+
+### 2. Use RAG with vector databases
+
+RAG (Retrieval-Augmented Generation) is a technique that combines LLMs with external data sources. Vector databases are a key component of RAG. They store and query vectors, which are numerical representations of text. RAG helps the agent query knowledge without needing it in the prompt. It also allows the agent to reason about the data it has access to.
+
+### 3. Leverage function calling
+
+This allows the model to call tools dynamically based on instructions.
+
+## Agent Operations (Agent OPS)
+
+Agents need monitoring just like microservices.
+
+- Use AI to evaluate AI (self-scoring or external evaluator models)
+- Add OpenTelemetry traces for observability
+- Track token usage, reasoning patterns, and failure cases
+
+## Security & Scaling
+
+Giving an agent tools without limits is risky.
+
+- Apply hard-coded guardrails, e.g.:
+  - Spending limits via a policy engine
+  - Allow-listing specific API domains
+- Use an AI gateway for governance (like you would with network traffic)
+
+## How Do AI Agents Learn Over Time?
+
+AI agents do not "learn" the way humans do automatically. They evolve through iterations. The improvement process usually looks like this:
+
+- Analyzing the runtime experience e.g logs & traces, user feedback
+- Refining their system prompts
+- Improving the [context engineering](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)
+- Optimizing existing tools or creating new ones
+- Running simulations to test the agent in different scenarios
+
+## Final Thoughts
+
+Building AI agents is not just about plugging an LLM into a toolchain. It's an engineering exercise that combines:
+
+- Strategic reasoning
+- Context management
+- Secure tool execution
+- Continuous Optimization
+
+The best agents don't just respond, **they reason, decide, and execute**.
+
+If you're building one, start at Level 1, validate the loop, add context engineering to get to Level 2, and only then move towards multi-agent systems or self-evolving systems.
+
+Everything beyond that should be treated like any other production software system: versioned, monitored, tested and governed.
+
+## References and Resources
+
+- [A Complete Guide to Agentic Reasoning](https://www.glean.com/blog/a-complete-guide-to-agentic-reasoning)
+- [A Developer's Guide to Model Routing](https://medium.com/google-cloud/a-developers-guide-to-model-routing-1f21ecc34d60)
+- [OpenTelemetry](https://opentelemetry.io/)
+- [AI Agents Taxonomy](https://www.seriousinsights.net/ai-agent-taxonomy/)

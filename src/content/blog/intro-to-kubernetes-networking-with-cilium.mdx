@@ -1,0 +1,193 @@
+---
+title: Kubernetes Network Security with Cilium
+date: "2024-03-11"
+draft: false
+tags:
+  - "Cilium"
+  - "Cloud"
+  - "Networking"
+summary: "In this blog post, we'll dive into the world of cloud native networking, exploring Kubernetes Network Policy and Cilium Network Policy"
+---
+
+Computer networking and security have always been a complex puzzle since the early days of computing. But humans are natural problem solvers—we love finding solutions to age-old challenges. Now, with the rise of cloud native computing and the introduction of [Cilium](https://cilium.io) and [Kubernetes](kubernetes.io), we have a fresh opportunity to untangle the knots of traditional networking. In this blog post, we'll dive into the Kubernetes Network Policy and Cilium Network Policy and how they help with securing your Kubernetes clusters.
+
+## What is Kubernetes?
+Kubernetes is an open-source platform designed to automate deploying, scaling, and operating applications [containers](https://www.docker.com/resources/what-container/). It groups containers that make up an application into logical units for easy management and discovery. it's like a conductor for containers, helping them work together efficiently in a cloud environment.
+
+### Components of Kubernetes
+- **Pods**: A Pod is the smallest deployable unit of computing that can be created and managed in Kubernetes. It is a group of one or more containers, with shared storage/network resources, and a specification for how to run the containers. Think of it as a small group of kids (containers) who stick together and share everything, like toys and snacks (resources and storage), as they play in a specific part of the playground (Node)
+- **Nodes**: A Node is a worker machine in Kubernetes, previously known as a 'minion'. A node may be a VM or physical machine, depending on the cluster. Each Node contains the services necessary to run Pods and is managed by the master components. Think of it as a big playground where many kids can play and work together.
+- **Control Plane**: Coordinates all activities in your cluster, such as scheduling applications, maintaining applications' desired state, scaling applications, and rolling out new updates. Think of it as the team of teachers and supervisors who oversee and manage the entire playground.
+![](/static/images/Kubernetes.png)
+<p align="center">Components of a Kubernetes Cluster</p>
+
+Think of Kubernetes networking as transitioning from a city with traditional roads and traffic (physical networks) to a futuristic city where cars (data packets) teleport from one place to another (virtual networks).
+
+### Key Rules of the Kubernetes Network Model
+- Individual Pod IPs: Each Pod gets its unique IP address, making inter-Pod communication straightforward without port mapping.
+- No NAT Required: Pods across different nodes communicate directly without needing Network Address Translation.
+- Node-Wide Communication: System agents on a node can freely interact with all Pods on that node.
+- Shared Pod Network: Containers in the same Pod share a network space, allowing them to communicate internally as if they're in the same room.
+
+_Note: A [CNI](cni.dev`) plugin is required to implement the Kubernetes network model._
+
+## Container Network Interface (CNI)
+It is an initiative of the Cloud Native Computing Foundation (CNCF), which specifies the configuration of Linux container network interfaces.
+- Kubernetes has its in-built CNI called the Kubernetes CNI
+- Kubernetes 1.28 supports CNI plugins, so you can also bring your own CNI plugin to Kubernetes e.g Cilium, Calico, Flannel
+
+## What is Cilium?
+Cilium is an open source, cloud native solution for providing, securing, and observing network connectivity between workloads, fueled by the revolutionary Kernel technology [eBPF](ebpf.io). Cilium was originally created by [Isovalent](isovalent.com) and is a graduate project of the [CNCF](https://www.cncf.io/)
+
+### eBPF
+eBPF is a technology used to safely and efficiently extend the capabilities of the kernel without requiring to change kernel source code or load kernel modules. eBPF enables the development of powerful new tools for the Cloud Native ecosystem that offers enhanced observability, efficient networking and improved performance management, revolutionizing the way cloud-native applications are built, run and operated.
+
+![](/static/images/ebpf-projects.png)
+<p align="center">An overview of the eBPF ecosystem</p>
+
+### Why Cilium?
+- **eBPF-Based Technology**: Cilium leverages the advanced eBPF technology for enhanced observability and security, making it a robust choice for Kubernetes networking.
+- **Community Endorsement**: Recognized and widely used in the Kubernetes community, Cilium's status as a CNCF graduated project underlines its reliability and innovation.
+- **Security Policy Enforcement**: Cilium can enforce security policies at the network layer, offering fine-grained control over traffic between services.
+- **Networking Capabilities**: It supports load balancing and service discovery, simplifying service access in a scalable way.
+
+![](/static/images/cilium-ecosystem-of-tools.png)
+<p align="center">The Cilium ecosystem of tools</p>
+
+### How does Cilium integrate with Kubernetes
+Cilium integrates with Kubernetes through its Container Network Interface (CNI) plugin, offering advanced networking, security, and observability features. This integration allows Cilium to enhance the native networking capabilities of Kubernetes, providing a more secure, efficient, and observable environment for containerized applications.
+- **CNI Plugin**: Cilium's CNI plugin is activated during Pod scheduling or termination, handling the network setup for Pods. You may need to disable the default to install Cilium
+- **Cilium Agent**: Each Kubernetes node runs a Cilium Agent, responsible for managing network policies, security, and communications with the Kubernetes API server.
+- **Policy Enforcement**: Cilium enforces network policies defined in Kubernetes at Layer 3/4 (IP/Port level) and Layer 7 (application level), allowing for more granular control compared to standard Kubernetes Network Policies.
+- **Observability with [Hubble](github.com/cilium/hubble)**: Built on top of Cilium and eBPF, Hubble provides network and security observability across the Kubernetes cluster, offering insights into application traffic and network flows.
+
+## Kubernetes Network Security with Cilium
+Approaching Network security in Kubernetes has two levels The first level involves the application of rules (network policy) which restrict the flow of network traffic between services. The second involves the encryption of traffic while it is in transit.
+
+A Network Policy in Kubernetes is a specification that defines how groups of pods can communicate with each other and with other network endpoints. It allows you to control the traffic flow at the IP address or port level (Layer 3 or Layer 4), providing a way to isolate and secure network traffic within your Kubernetes cluster. Essentially, Network Policies are like rules that determine which pods can talk to each other and what resources they can access, helping to enforce a more secure and streamlined network environment.
+
+### What does a Kubernetes Network Policy Look like?
+Below is an example of a Kubernetes network policy using `NetworkPolicy` resource
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      role: db
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/24
+    ports:
+    - protocol: TCP
+      port: 5978
+```
+source: [Kubernetes.io](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
+
+### What does this do?
+**Target Pods**:
+  - This network policy only applies to pods with the label of`role: db`.
+
+**Ingress Rules (for traffic entering the pods)**:
+  - Allows incoming traffic from the IP range `172.17.0.0/16`, but excludes IPs in the `172.17.1.0/24` range.
+  - Allows traffic from any pod in namespaces labeled `project: myproject`.
+  - Allows traffic from pods labelled `role: frontend`.
+  - Allowed Traffic: Only TCP traffic on port `6379` is permitted.
+
+**Egress Rules (for traffic leaving the pods)**:
+  - Allows outgoing traffic to the IP range `10.0.0.0/24`.
+  - Only TCP traffic on port `5978` is permitted.
+
+How do we replicate this network policy but with CIlium? We can do this with the use of [CiliumNetworkPolicy](https://docs.cilium.io/en/latest/network/kubernetes/policy/#ciliumnetworkpolicy)
+
+### CiliumNetworkPolicy
+According to Cilium's official documentation, the `CiliumNetworkPolicy` is similar to the standard NetworkPolicy. The purpose is to provide functionality which is not yet supported in NetworkPolicy. Cilium supports the specification of policies at Layers 3-7 for both [ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) and [egress](https://www.tkng.io/ingress/egress/).
+
+### CiliumNetworkPolicy Labels
+Layer 3 policies can be specified based on the following:
+- **Labels Based**: This is used to describe the relationship if both endpoints are managed by Cilium and are then assigned labels.
+- **Services based**: Traffic from pods to services running in your cluster can be allowed via `toServices` statements in Egress rules.
+- **Entities Based**: Entities are used to describe remote peers which can be categorized without knowing their IP addresses. I.e `host`, `cluster`, `world`, `kube-apiserver`, `health`, `all`
+- **IP/CIDR based**: used to define policies to and from endpoints that are not managed by Cilium and thus do not have labels associated with them.
+- **DNS based**: selects remote, non-cluster, peers using DNS names converted to IPs via DNS lookups.
+
+Let's replicate the Kubernetes network policy example based on all we know about Cilium network policies.
+
+```yaml
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: test-network-policy
+  namespace: default
+spec:
+  endpointSelector:
+    matchLabels:
+      role: db
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            role: frontend
+      fromCIDR:
+        - 172.17.0.0/16
+      fromCIDRSet:
+        - cidr: 172.17.0.0/16
+          except:
+          - 172.17.1.0/24
+      fromRequires:
+        - matchLabels:
+            project: myproject
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+egress:
+  - toCIDR:
+      - 10.0.0. 0/24
+    toPorts:
+      - ports:
+        - port: "5978"
+          protocol: TCP
+```
+**What does this do?**
+
+Targets Pods with role: db Label: The policy applies to pods labelled `role: db`.
+
+**Ingress (Incoming Traffic) Rules:**
+  - From Pods Labeled role: frontend: Allows incoming traffic from these pods.
+  - From the IP Range `172.17.0.0/16`: Permits traffic from this range, excluding IPs in `172.17.1.0/24`.
+  - From Namespaces Labeled `project: myproject`: Allows traffic from pods in these namespaces.
+  - Only TCP Traffic on Port `6379`: Restricts allowed traffic types and ports.
+
+**Egress (Outgoing Traffic) Rules**:
+  - To the IP Range `10.0.0.0/24`: Permits outgoing traffic to this range.
+  - Only TCP Traffic on Port `5978`: Limits allowed traffic types and ports.
+
+So Kubernetes network policies and Cilium network policies are quite similar, however, Cilium gives you much more power to define your cluster security at both Layer 3/4 and Layer 7 of the [OSI model](https://en.wikipedia.org/wiki/OSI_model).
+
+## Learning Resources
+If you're curious to learn more about Cilium, especially at Scale, you should check out the project's [case studies page](https://www.cncf.io/case-studies/?_sft_lf-project=cilium) on the CNCF website. Also, here are some useful learning resources to get you started with Cilium:
+- [The official Cilium documentation](https://docs.cilium.io/en/stable/)
+- [Linux Foundation Intro to Cilium Course](training.linuxfoundation.org)
+- [Cilium hands-on labs](cilium.io/labs)

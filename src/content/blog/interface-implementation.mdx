@@ -1,0 +1,85 @@
+---
+title: 'Interface Implementation in Go'
+draft: false
+date: '2025-02-17'
+summary: "Learn how interfaces are implemented in Go."
+tags: ['Go']
+---
+
+[Interfaces](https://gobyexample.com/interfaces) are implemented implicitly in Go. Think of interfaces in Go like a rule book that says:
+“If you can do these things, then you belong to this group.”
+
+Let's visualize this with a simple example. 
+
+## Step 1: Define an interface (The Rule book)
+
+```go
+package main
+
+import "fmt"
+
+// ToyCar is the rule book (interface) that says a car must have Drive() and Honk()
+type ToyCar interface {
+    Drive()
+    Honk()
+}
+
+```
+
+## Step 2: Create a Struct 
+
+Now, we create a struct (RemoteCar) that follows these rules. 
+
+```go
+// RemoteCar is a real toy car that can drive and honk
+type RemoteCar struct{}
+
+// RemoteCar has a Drive() method (so it follows part of the rule book)
+func (r RemoteCar) Drive() {
+    fmt.Println("Vroom! The car is driving!")
+}
+
+// RemoteCar has a Honk() method (so it fully follows the rule book)
+func (r RemoteCar) Honk() {
+    fmt.Println("Beep beep! The car is honking!")
+}
+```
+
+Since `RemoteCar` has both `Drive()` and `Honk()`, it automatically belongs to the `ToyCar` group—without us saying anything!
+
+## Step 3: Let's create a Function to Check if It Follows the Rule book
+
+If we write a function that accepts only things that follow ToyCar, and it works with RemoteCar, that means RemoteCar follows the rules!
+
+```go
+// PlayWithToy takes anything that follows the ToyCar rules
+func PlayWithToy(car ToyCar) {
+    car.Drive()
+    car.Honk()
+}
+```
+
+## Step 4: Let's Test It
+
+Now, let's test it inside `main()`:
+
+```go
+func main() {
+    myCar := RemoteCar{} // Create a toy car
+    PlayWithToy(myCar)   // Check if it follows the rules
+}
+```
+
+Expected Output:
+
+```bash
+Vroom! The car is driving!
+Beep beep! The car is honking!
+```
+
+### What Just Happened?
+
+- We **never** explicitly said `RemoteCar` implements `ToyCar`, but since it has all the required methods, Go automatically considers it part of `ToyCar`.
+- If we removed `Honk()` from `RemoteCar`, the program wouldn't compile, because `RemoteCar` wouldn't fully match the `ToyCar` rule book.
+
+This is what we mean when we say “**Interfaces are implemented implicitly in Go**”—you don't have to **declare** it; if a type **matches**, it is that interface.

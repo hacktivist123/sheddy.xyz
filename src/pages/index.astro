@@ -1,11 +1,58 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+import Layout from "../layouts/Layout.astro";
+import ClientList from "../components/ClientList.astro";
+import ProjectList from "../components/ProjectList.astro";
+import PostList from "../components/PostList.astro";
+import { getCollection } from "astro:content";
+import type { CollectionEntry } from "astro:content";
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const posts: CollectionEntry<"blog">[] = await getCollection(
+    "blog",
+    ({ data }) => !data.draft,
+);
+const sortedPosts = posts.sort(
+    (a, b) => b.data.date.getTime() - a.data.date.getTime(),
+);
 ---
 
-<Layout>
-	<Welcome />
+<Layout title="Shedrack Akintayo">
+    <div class="container mx-auto max-w-3xl px-4 py-16">
+        <!-- Hero -->
+        <section class="py-12">
+            <h1 class="text-4xl font-bold tracking-tight sm:text-5xl">
+                Shedrack Akintayo
+            </h1>
+            <p class="mt-4 text-xl text-muted-foreground">
+                Technical Writer · DevRel Engineer · DevOps Solutions Architect
+            </p>
+            <p class="mt-6 text-muted-foreground leading-relaxed">
+                I build scalable cloud solutions and write technical content
+                that developers actually read. My work sits at the intersection
+                of reliable infrastructure and great developer experience.
+            </p>
+            <p class="mt-4 text-muted-foreground leading-relaxed">
+                Off the keyboard, I'm a dedicated athlete—cross-training in
+                strength, Muay Thai, running, and football. I approach sports
+                with the same discipline I bring to engineering.
+            </p>
+        </section>
+
+        <!-- Clients -->
+        <ClientList />
+
+        <!-- Projects -->
+        <ProjectList />
+
+        <!-- Latest Posts -->
+        <section class="py-12">
+            <h2 class="mb-6 text-lg font-medium">Latest posts</h2>
+            <PostList posts={sortedPosts} limit={5} />
+            <a
+                href="/blog"
+                class="mt-6 inline-block text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+                View all posts →
+            </a>
+        </section>
+    </div>
 </Layout>

@@ -1,0 +1,41 @@
+---
+interface Post {
+  id: string;
+  data: {
+    title: string;
+    date: Date;
+  };
+}
+
+interface Props {
+  posts: Post[];
+  limit?: number;
+}
+
+const { posts, limit } = Astro.props;
+const displayPosts = limit ? posts.slice(0, limit) : posts;
+
+function formatDate(date: Date): string {
+  return date.toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: '2-digit', 
+    day: '2-digit' 
+  });
+}
+---
+
+<ul class="space-y-3">
+  {displayPosts.map(post => (
+    <li class="flex flex-col gap-1 sm:flex-row sm:gap-4">
+      <time class="shrink-0 tabular-nums text-muted-foreground">
+        {formatDate(post.data.date)}
+      </time>
+      <a 
+        href={`/blog/${post.id}`}
+        class="transition-colors hover:text-muted-foreground"
+      >
+        {post.data.title}
+      </a>
+    </li>
+  ))}
+</ul>

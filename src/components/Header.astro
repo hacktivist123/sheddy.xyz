@@ -1,0 +1,29 @@
+---
+import { ModeToggle } from './ModeToggle';
+
+const navLinks = [
+  { href: '/', label: 'Home' },
+  { href: '/blog', label: 'Blog' },
+  { href: '/about', label: 'About' },
+];
+---
+
+<header class="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+  <div class="container mx-auto flex h-14 max-w-3xl items-center justify-between px-4">
+    <a href="/" class="font-medium">
+      Shedrack Akintayo
+    </a>
+    
+    <nav class="flex items-center gap-6">
+      {navLinks.map(link => (
+        <a 
+          href={link.href} 
+          class="text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          {link.label}
+        </a>
+      ))}
+      <ModeToggle client:load />
+    </nav>
+  </div>
+</header>
