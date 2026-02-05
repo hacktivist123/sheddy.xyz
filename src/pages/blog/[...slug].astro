@@ -11,6 +11,8 @@ export async function getStaticPaths() {
   }));
 }
 
+import { ReadingProgress } from '../../components/ReadingProgress';
+
 interface Props {
   post: CollectionEntry<'blog'>;
 }
@@ -35,6 +37,7 @@ function getReadingTime(content: string): string {
 ---
 
 <Layout title={`${post.data.title} - Shedrack Akintayo`} description={post.data.summary}>
+  <ReadingProgress client:load />
   <article class="container mx-auto max-w-3xl px-4 py-16">
     <header class="py-12">
       <time class="text-sm text-muted-foreground">
