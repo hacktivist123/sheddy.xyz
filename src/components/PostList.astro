@@ -24,15 +24,15 @@ function formatDate(date: Date): string {
 }
 ---
 
-<ul class="space-y-3">
+<ul class="space-y-4">
   {displayPosts.map(post => (
-    <li class="flex flex-col gap-1 sm:flex-row sm:gap-4">
-      <time class="shrink-0 tabular-nums text-muted-foreground">
+    <li class="flex flex-col gap-1.5 sm:flex-row sm:gap-5">
+      <time class="shrink-0 tabular-nums text-sm font-medium tracking-wide text-muted-foreground">
         {formatDate(post.data.date)}
       </time>
       <a 
         href={`/blog/${post.id}`}
-        class="transition-colors hover:text-muted-foreground"
+        class="font-heading text-lg font-medium leading-snug tracking-[-0.01em] transition-colors hover:text-primary"
       >
         {post.data.title}
       </a>
