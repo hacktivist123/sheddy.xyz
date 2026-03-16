@@ -14,9 +14,16 @@ import { CommandMenu } from '../components/CommandMenu';
 interface Props {
   title: string;
   description?: string;
+  ogImage?: string;
+  ogType?: "website" | "article";
 }
 
-const { title, description = "Shedrack Akintayo - DevOps Engineer & Technical Writer" } = Astro.props;
+const {
+  title,
+  description = "Shedrack Akintayo - DevOps Engineer & Technical Writer",
+  ogImage,
+  ogType = "website",
+} = Astro.props;
 ---
 
 <!doctype html>
@@ -26,6 +33,14 @@ const { title, description = "Shedrack Akintayo - DevOps Engineer & Technical Wr
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content={ogType} />
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {ogImage && <meta name="twitter:image" content={ogImage} />}
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
   </head>
