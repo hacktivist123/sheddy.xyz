@@ -1,0 +1,219 @@
+---
+title: "How I Actually Work With AI (OpenCode, Antigravity, Claude, and Codex)"
+draft: false
+date: "2026-03-16"
+summary: "A research-backed breakdown of my real AI workflow across OpenCode, Antigravity, Claude, and Codex, including models, skills, MCPs, and how I orchestrate them in practice."
+tags: [AI, Developer Experience]
+---
+
+I have wanted to document my AI workflow for a while.
+
+I switch between these tools every day, but I did not have clear numbers on which models and workflows I rely on most.
+
+So I checked config files, logs, and session databases across OpenCode, Antigravity, Claude, and Codex.
+
+## AI tools I use
+
+Before going deep, here is the short version:
+
+- **OpenCode CLI**: Where I run larger coding tasks, agent workflows, and verification.
+- **Antigravity editor**: My main in-editor environment while I write and review code.
+- **Claude Code (inside Antigravity)**: My most-used tool for day-to-day work tasks, especially docs and implementation support.
+- **Codex CLI**: What I use when I need focused, high-reasoning coding sessions.
+
+I also rely on shared **skills** and **MCP servers** across these tools.
+
+## What I checked
+
+I pulled data from these local paths:
+
+- OpenCode: `~/.config/opencode/`, `~/.local/share/opencode/`, `~/.local/share/opencode/opencode.db`
+- Antigravity: `~/Library/Application Support/Antigravity/`, `~/.gemini/antigravity/`
+- Claude: `~/.claude.json`, `~/.claude/settings.json`, `~/.config/claude-mcp/mcp.json`
+- Codex: `~/.codex/config.toml`, `~/.codex/sessions/`
+- Skills: `~/.agents/skills/`, `~/.claude/skills/`
+
+## Claude Code is where most work happens
+
+After checking the local data, this became very clear.
+
+From `~/.claude/stats-cache.json`:
+
+- `totalSessions`: 30
+- `totalMessages`: 9769
+- Date range covered: `2026-01-06` to `2026-03-15`
+
+For work-related tasks, Claude Code is not just part of my workflow. It is the main one.
+
+## OpenCode setup and usage
+
+My primary OpenCode config is in `~/.config/opencode/opencode.json`.
+
+Current defaults:
+
+- `model`: `google/claude-opus-4-5-thinking`
+- `small_model`: `google/gemini-2.5-flash`
+- Plugins:
+  - `oh-my-opencode@latest`
+  - `opencode-openai-codex-auth`
+  - `opencode-antigravity-auth@1.6.0`
+
+### OpenCode plugins I run
+
+These are the OpenCode plugins configured in `~/.config/opencode/opencode.json`:
+
+- `oh-my-opencode@latest`
+- `opencode-openai-codex-auth`
+- `opencode-antigravity-auth@1.6.0`
+
+I also use [Oh My OpenCode](https://github.com/xxsheddy/oh-my-opencode) routing in `~/.config/opencode/oh-my-opencode.json`.
+
+Notable mappings there:
+
+- `sisyphus`, `oracle`, `prometheus`, `metis`: GPT 5.2 variants
+- `explore`: `opencode/gpt-5-nano`
+- `librarian`: `opencode/big-pickle`
+- `ultrabrain` category: `openai/gpt-5.3-codex`
+
+### GSD (Get Shit Done)
+
+[GSD](https://github.com/gsd-build/get-shit-done) is the workflow I use when I want AI work to be structured and repeatable.
+
+On my machine, it lives in `~/.config/opencode/get-shit-done/` (version `1.25.1`), and the command definitions are in `~/.config/opencode/command/gsd-*.md`.
+
+GSD's core loop is:
+
+- `/gsd-new-project`
+- `/gsd-plan-phase`
+- `/gsd-execute-phase`
+
+The commands I use the most:
+
+- `/gsd-quick` for small tasks when I already know what to do
+- `/gsd-progress` to get status and route to the next action
+- `/gsd-verify-work` to do conversational UAT (one test at a time)
+
+### Most-used models in OpenCode (from local DB)
+
+From `~/.local/share/opencode/opencode.db`, grouped by assistant provider/model:
+
+| Provider | Model | Count |
+|---|---|---:|
+| anthropic | claude-opus-4-5 | 1045 |
+| openai | gpt-5.1-codex-max-high | 500 |
+| google | claude-opus-4-5-thinking | 287 |
+| openai | gpt-5.1-codex-max-xhigh | 194 |
+| google | antigravity-gemini-3-pro | 178 |
+| openai | gpt-5.3-codex | 156 |
+| google | gemini-3-pro-high | 130 |
+
+Antigravity-routed models inside OpenCode history:
+
+- `antigravity-gemini-3-pro`: 178
+- `antigravity-claude-opus-4-5-thinking`: 79
+
+The practical takeaway is simple: I do not run one model all day. I route by task.
+
+## Antigravity + Claude Code
+
+Antigravity editor settings are in `~/Library/Application Support/Antigravity/User/settings.json`.
+
+Current Claude Code editor preferences there:
+
+- `claudeCode.preferredLocation`: `panel`
+- `claudeCode.selectedModel`: `default`
+
+From Antigravity logs, I found these useful model signals:
+
+1. Launch events in `Claude VSCode.log` commonly start with `model:"default"` or `model:"sonnet"`.
+2. Explicit set-model events include:
+   - `haiku`
+   - `sonnet`
+   - `opus`
+   - `claude-opus-4-6`
+
+## Claude setup, skills, and MCPs
+
+From `~/.claude/settings.json`:
+
+- Global model is set to `opus`.
+
+From my Claude environment:
+
+- Enabled plugins include:
+  - `superpowers`
+  - `context7`
+  - `greptile`
+  - `gopls-lsp`
+  - `typescript-lsp`
+  - `code-review`
+  - `modern-go-guidelines`
+
+Custom skills are installed in both `~/.claude/skills/` and `~/.agents/skills/`:
+
+- `find-skills`
+- `postgres`
+- `mysql`
+- `technical-writer`
+
+From `~/.claude.json`, `technical-writer` is currently my most-used custom skill.
+
+Claude MCP server definitions appear in:
+
+- `~/.claude.json`
+- `~/.config/claude-mcp/mcp.json`
+
+MCP servers defined there:
+
+- `magic`
+- `excalidraw`
+- `context7`
+- `exa`
+- `css` (via `css-mcp`)
+
+## Codex setup
+
+From `~/.codex/config.toml`:
+
+- `model = "gpt-5.3-codex"`
+- `model_reasoning_effort = "high"`
+- `personality = "pragmatic"`
+
+From local session artifacts in `~/.codex/sessions/`, historical model density is strongest around:
+
+- `gpt-5.1-codex-max`
+- `gpt-5.2-codex`
+- then `gpt-5.3-codex`
+
+So my current Codex default is `gpt-5.3-codex`, while history still carries more 5.1/5.2 runs.
+
+## MCP map across tools
+
+| Tool | MCP signal |
+|---|---|
+| OpenCode | Runtime logs show `websearch`, `context7`, `grep_app`, `magic` |
+| Claude | Config includes `magic`, `excalidraw`, `context7`, `exa`, `css` |
+| Antigravity | - |
+| Codex | - |
+
+## How I work day to day
+
+This is my normal loop:
+
+1. Start in Antigravity for direct editing.
+2. Use Claude Code for in-editor iteration and model switching.
+3. Move to OpenCode when I need orchestration, parallel search, and stronger execution structure.
+4. Use Codex CLI for focused high-reasoning coding sessions.
+5. Use skills and MCPs as shared capability across all of the above.
+
+## What changed after this audit
+
+This review was useful for three reasons:
+
+- I now have measured usage, not assumptions.
+- I can clearly see where defaults and real behavior differ.
+- I know what to tune next: model defaults, skill loading, and MCP consistency.
+
+If you use multiple AI tools daily, I recommend doing this once.
+
+Your machine history is usually more accurate than your memory.

@@ -10,15 +10,15 @@
     "biome:check": "biome check src"
   },
   "dependencies": {
-    "@astrojs/mdx": "^4.3.13",
-    "@astrojs/react": "^4.4.2",
+    "@astrojs/mdx": "5.0.1",
+    "@astrojs/react": "5.0.0",
     "@fontsource/shippori-mincho": "^5.2.8",
     "@fontsource/zen-kaku-gothic-new": "^5.2.7",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.18",
     "@types/react": "^19.2.12",
     "@types/react-dom": "^19.2.3",
-    "astro": "^5.17.1",
+    "astro": "6.0.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
