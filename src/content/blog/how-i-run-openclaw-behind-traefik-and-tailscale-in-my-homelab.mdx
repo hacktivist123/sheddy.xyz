@@ -1,0 +1,214 @@
+---
+title: "How I Run OpenClaw Behind Traefik and Tailscale in My Homelab"
+draft: false
+date: "2026-03-20"
+summary: "This is how I run OpenClaw in my homelab behind Traefik and Tailscale, with the gateway bound to loopback and basic auth protecting the public route."
+tags: [Homelab, Linux, Traefik, Tailscale, OpenClaw, Security]
+---
+
+I wanted OpenClaw available in my homelab, but I did not want to expose the gateway directly on my network or leave the UI sitting open behind a single private IP.
+
+So I kept the OpenClaw gateway bound to loopback, put Traefik in front of it, exposed it on my Tailscale hostname, and added basic auth on the Traefik route.
+
+The result is simple:
+
+- OpenClaw listens only on `127.0.0.1` and `::1`
+- Traefik proxies requests to it on `/openclaw`
+- Tailscale handles private access and certificates
+- Traefik basic auth protects the route before OpenClaw is reached
+- OpenClaw still keeps its own token auth and rate limiting internally
+
+This post is just about that setup and why I think the security posture is good for a homelab.
+
+Outside my local machine, I reach the control UI through my Tailscale MagicDNS hostname and the `/openclaw` path.
+
+That is also the same pattern I use for other services in my homelab. I expose them through Traefik on the same host and give each one a clear path instead of exposing every service separately.
+
+The request path looks like this:
+
+```text
+Browser
+  -> https://your-node.your-tailnet.ts.net/openclaw
+  -> Traefik
+  -> basic auth middleware
+  -> OpenClaw gateway on 127.0.0.1:18789
+```
+
+## What I am running
+
+OpenClaw runs as a user `systemd` service on port `18789`.
+
+The important detail is that it is bound to loopback, not to my LAN address. That means the gateway is available locally on the host, but it is not exposed directly to the rest of my network.
+
+My OpenClaw gateway config looks like this:
+
+```json
+"gateway": {
+  "port": 18789,
+  "mode": "local",
+  "bind": "loopback",
+  "controlUi": {
+    "enabled": true,
+    "basePath": "/openclaw",
+    "allowedOrigins": [
+      "http://127.0.0.1:18789",
+      "http://localhost:18789",
+      "http://[::1]:18789",
+      "https://your-node.your-tailnet.ts.net"
+    ]
+  },
+  "auth": {
+    "mode": "token",
+    "token": "<redacted>",
+    "allowTailscale": false,
+    "rateLimit": {
+      "maxAttempts": 10,
+      "windowMs": 60000,
+      "lockoutMs": 300000
+    }
+  },
+  "trustedProxies": [
+    "127.0.0.1",
+    "::1"
+  ]
+}
+```
+
+That gives me a few things I care about:
+
+- the gateway is private by default
+- the control UI is mounted on `/openclaw`
+- Tailscale access does not bypass auth
+- the gateway still has its own token auth
+- rate limiting is enabled
+- trusted proxies are restricted to loopback
+
+## Traefik is the only public entry point
+
+Traefik exposes OpenClaw on my Tailscale hostname under `/openclaw`.
+
+The HTTPS router looks like this:
+
+```yaml
+openclaw:
+  rule: "Host(`your-node.your-tailnet.ts.net`) && PathPrefix(`/openclaw`)"
+  entryPoints:
+    - websecure
+  service: openclaw-service
+  middlewares:
+    - traefik-auth
+  tls:
+    certResolver: tailscale
+```
+
+The backend service points to the local gateway:
+
+```yaml
+openclaw-service:
+  loadBalancer:
+    servers:
+      - url: "http://127.0.0.1:18789"
+```
+
+And HTTP only exists to redirect to HTTPS:
+
+```yaml
+openclaw-redirect:
+  rule: "Host(`your-node.your-tailnet.ts.net`) && PathPrefix(`/openclaw`)"
+  entryPoints:
+    - web
+  middlewares:
+    - redirect-to-https
+  service: openclaw-service
+```
+
+I like this setup because Traefik becomes the only thing presenting OpenClaw externally. The gateway stays local, and the route stays explicit.
+
+I also verified it the simple way:
+
+- the local OpenClaw UI responds on `http://127.0.0.1:18789/openclaw/`
+- the Tailscale route returns `401 Unauthorized` from Traefik without credentials
+
+## Why Tailscale is part of the setup
+
+I am not exposing this on a public internet-facing domain. Outside my local machine, I reach it through my Tailscale MagicDNS hostname and `/openclaw`.
+
+That does two useful things for me.
+
+First, access stays inside my tailnet.
+
+Second, Traefik can use the Tailscale certificate resolver, which means I do not have to manage separate certificates for this service.
+
+For a homelab service, that is exactly the kind of simplicity I want.
+
+## Basic auth at the edge
+
+The Traefik route is protected with a basic auth middleware:
+
+```yaml
+traefik-auth:
+  basicAuth:
+    users:
+      - "olympus:<redacted-hash>"
+```
+
+This is not a replacement for OpenClaw's own auth. It is an outer gate.
+
+An unauthenticated request should not reach the service cleanly. Traefik should challenge first, and that is exactly what I want for a private dashboard in a homelab.
+
+In practice, hitting the OpenClaw route without credentials returns `401 Unauthorized` from Traefik.
+
+## One detail that matters
+
+Traefik is running with host networking.
+
+That is important because my backend target is `127.0.0.1:18789`.
+
+Without host networking, `127.0.0.1` inside the Traefik container would point back to the container itself, not to the host running the OpenClaw gateway. In this setup, host networking makes the loopback backend work the way I want.
+
+If you copy this pattern and run Traefik in bridge mode instead, you need to account for that.
+
+## My security posture for this setup
+
+This is how I would describe the setup in plain terms:
+
+- OpenClaw is not exposed directly on the LAN
+- the gateway is bound to loopback only
+- the public route is on a Tailscale hostname
+- Traefik enforces HTTPS
+- Traefik requires basic auth
+- OpenClaw still uses token auth internally
+- OpenClaw has rate limiting configured
+- trusted proxies are locked down to loopback
+
+This is not an enterprise edge design. It is a homelab setup with a clear set of boundaries and a low maintenance cost.
+
+That is what I want from most homelab security decisions. I want a setup that is easy to understand, easy to verify, and hard to expose by accident.
+
+## What I would not publish directly
+
+If you write about your own setup, redact real secrets.
+
+That includes:
+
+- gateway tokens
+- basic auth hashes
+- anything else that is specific enough to be reused or abused
+
+It is fine to show the structure of the config. Just do not publish live credentials.
+
+## Why I like this arrangement
+
+I like this because the responsibilities are clean.
+
+OpenClaw runs locally.
+
+Traefik handles routing.
+
+Tailscale handles private access and certificates.
+
+Basic auth gives me a straightforward gate at the edge.
+
+Nothing here is complicated, and that is one of the main strengths of the setup.
+
+If you already run Traefik and Tailscale in your homelab, putting OpenClaw behind both is a practical way to keep it available without exposing more than you need to.
