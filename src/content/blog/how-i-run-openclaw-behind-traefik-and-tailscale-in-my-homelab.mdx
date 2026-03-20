@@ -181,33 +181,7 @@ This is how I would describe the setup in plain terms:
 - OpenClaw has rate limiting configured
 - trusted proxies are locked down to loopback
 
-This is not an enterprise edge design. It is a homelab setup with a clear set of boundaries and a low maintenance cost.
-
 That is what I want from most homelab security decisions. I want a setup that is easy to understand, easy to verify, and hard to expose by accident.
-
-## What I would not publish directly
-
-If you write about your own setup, redact real secrets.
-
-That includes:
-
-- gateway tokens
-- basic auth hashes
-- anything else that is specific enough to be reused or abused
-
-It is fine to show the structure of the config. Just do not publish live credentials.
-
-## Why I like this arrangement
-
-I like this because the responsibilities are clean.
-
-OpenClaw runs locally.
-
-Traefik handles routing.
-
-Tailscale handles private access and certificates.
-
-Basic auth gives me a straightforward gate at the edge.
 
 Nothing here is complicated, and that is one of the main strengths of the setup.
 
