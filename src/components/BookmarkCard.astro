@@ -33,28 +33,46 @@ function formatDate(value?: string): string | null {
 	});
 }
 
+function getFallbackMark(host: string, title: string): string {
+	const source = `${host} ${title}`.replace(/[^a-z0-9]/gi, "").toUpperCase();
+	return source.slice(0, 2) || "LK";
+}
+
 const hostname = bookmark.domain ?? getHostname(bookmark.link);
 const summary = bookmark.excerpt ?? bookmark.note ?? `Saved from ${hostname}.`;
 const createdAt = formatDate(bookmark.created);
+const fallbackMark = getFallbackMark(hostname, bookmark.title);
 ---
 
 <article class="group h-full overflow-hidden rounded-[1.75rem] border border-border/70 bg-card/95 shadow-[0_24px_60px_-42px_rgba(15,23,42,0.7)] transition duration-200 hover:-translate-y-1 hover:border-primary/30 hover:shadow-[0_28px_80px_-40px_rgba(37,99,235,0.28)]">
   <a href={bookmark.link} target="_blank" rel="noreferrer" class="flex h-full flex-col">
     <div class="relative aspect-[16/10] overflow-hidden border-b border-border/60 bg-secondary/45">
+      <div class="absolute inset-0 flex h-full items-end bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.22),_transparent_48%),linear-gradient(180deg,_rgba(255,255,255,0.3),_transparent_60%)] p-5 dark:bg-[radial-gradient(circle_at_top_left,_rgba(147,197,253,0.2),_transparent_48%),linear-gradient(180deg,_rgba(255,255,255,0.08),_transparent_60%)]">
+        <div class="flex w-full items-end justify-between gap-4">
+          <div>
+            <p class="text-[0.68rem] font-medium uppercase tracking-[0.26em] text-foreground/60">
+              {hostname}
+            </p>
+            <span class="mt-3 block max-w-[14ch] text-2xl font-semibold tracking-tight text-foreground/90">
+              {bookmark.title}
+            </span>
+          </div>
+
+          <span class="rounded-2xl border border-foreground/10 bg-background/55 px-3 py-2 text-sm font-semibold tracking-[0.2em] text-foreground/75 backdrop-blur-sm">
+            {fallbackMark}
+          </span>
+        </div>
+      </div>
+
       {bookmark.cover ? (
         <img
           src={bookmark.cover}
           alt=""
-          class="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+          class="absolute inset-0 h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
           loading="lazy"
+          onerror="this.remove()"
         />
-      ) : (
-        <div class="flex h-full items-end bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.22),_transparent_48%),linear-gradient(180deg,_rgba(255,255,255,0.3),_transparent_60%)] p-5 dark:bg-[radial-gradient(circle_at_top_left,_rgba(147,197,253,0.2),_transparent_48%),linear-gradient(180deg,_rgba(255,255,255,0.08),_transparent_60%)]">
-          <span class="max-w-[14ch] text-2xl font-semibold tracking-tight text-foreground/90">
-            {bookmark.title}
-          </span>
-        </div>
-      )}
+      ) : null}
 
       <div class="absolute inset-0 bg-gradient-to-t from-background/75 via-transparent to-transparent" />
 
