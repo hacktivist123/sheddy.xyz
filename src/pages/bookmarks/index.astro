@@ -1,0 +1,109 @@
+---
+import BookmarkCollectionGrid from "../../components/BookmarkCollectionGrid.astro";
+import Layout from "../../layouts/Layout.astro";
+import {
+	featuredRaindropCollections,
+	hasConfiguredBookmarkCollections,
+} from "../../config/bookmarks";
+import {
+	getConfiguredCollections,
+	getRaindropCollections,
+	hasRaindropToken,
+} from "../../lib/raindrop";
+
+const hasToken = hasRaindropToken();
+const hasCollections = hasConfiguredBookmarkCollections;
+const collections =
+	hasToken && hasCollections
+		? await getConfiguredCollections(featuredRaindropCollections)
+		: [];
+const missingCollectionsCount = hasCollections
+	? featuredRaindropCollections.length - collections.length
+	: 0;
+const devCollections =
+	hasToken && !hasCollections && import.meta.env.DEV
+		? await getRaindropCollections()
+		: [];
+const setupCollections = devCollections
+	.slice()
+	.sort((a, b) => b.sort - a.sort)
+	.map((collection) => ({
+		id: collection.id,
+		slug: "",
+		title: collection.title,
+		description: `id ${collection.id}`,
+		count: collection.count,
+		cover: collection.cover,
+		color: collection.color,
+		public: collection.public,
+		view: collection.view,
+	}));
+---
+
+<Layout
+  title="Bookmarks - Shedrack Akintayo"
+  description="Selected Raindrop collections presented as folders and visual bookmark cards."
+>
+  <div class="container mx-auto max-w-6xl px-4 py-16">
+    <section class="mx-auto max-w-3xl py-8 text-center sm:py-14">
+      <p class="text-sm font-medium uppercase tracking-[0.34em] text-muted-foreground">
+        Raindrop archive
+      </p>
+      <h1 class="mt-5 text-5xl font-semibold tracking-tight sm:text-6xl">
+        Open a folder, find a rabbit hole.
+      </h1>
+      <p class="mx-auto mt-6 max-w-[60ch] text-lg leading-relaxed text-muted-foreground">
+        A running list of links I find interesting and save in Raindrop, grouped into folders so they stay easy to browse.
+      </p>
+    </section>
+
+    {!hasToken && import.meta.env.DEV && (
+      <section class="mx-auto max-w-3xl rounded-[2rem] border border-dashed border-border bg-card/70 p-8 text-center shadow-[0_24px_60px_-42px_rgba(15,23,42,0.55)]">
+        <h2 class="text-2xl font-semibold tracking-tight">Add your Raindrop access token</h2>
+        <p class="mt-4 text-muted-foreground">
+          Raindrop uses a bearer access token here rather than a separate public API key. Add `RAINDROP_ACCESS_TOKEN` to your local `.env`, then pick which collection IDs you want to expose in `src/config/bookmarks.ts`.
+        </p>
+      </section>
+    )}
+
+    {hasToken && !hasCollections && import.meta.env.DEV && (
+      <section class="space-y-8 rounded-[2rem] border border-dashed border-border bg-card/70 p-8 shadow-[0_24px_60px_-42px_rgba(15,23,42,0.55)]">
+			<div class="mx-auto max-w-3xl text-center">
+				<h2 class="text-2xl font-semibold tracking-tight">Setup Mode</h2>
+				<p class="mt-4 text-muted-foreground">
+					Copy a collection `id` from the folders below into `src/config/bookmarks.ts`. Once a folder is added there, it becomes a real clickable route on the site.
+				</p>
+			</div>
+
+			{setupCollections.length > 0 ? (
+				<BookmarkCollectionGrid collections={setupCollections} mode="setup" />
+			) : (
+				<p class="text-center text-sm text-muted-foreground">
+					No collections were returned from Raindrop for this token yet.
+				</p>
+			)}
+      </section>
+    )}
+
+    {hasToken && hasCollections && collections.length === 0 && import.meta.env.DEV && (
+      <section class="mx-auto max-w-3xl rounded-[2rem] border border-dashed border-border bg-card/70 p-8 text-center shadow-[0_24px_60px_-42px_rgba(15,23,42,0.55)]">
+        <h2 class="text-2xl font-semibold tracking-tight">No matching collections yet</h2>
+        <p class="mt-4 text-muted-foreground">
+          I could not match the configured collection IDs against the Raindrop response. Double-check the IDs in `src/config/bookmarks.ts` and make sure the token can read them.
+        </p>
+      </section>
+    )}
+
+    {collections.length > 0 && (
+      <section class="py-8 sm:py-12">
+        <BookmarkCollectionGrid collections={collections} />
+
+        {missingCollectionsCount > 0 && import.meta.env.DEV && (
+          <p class="mt-6 text-sm text-muted-foreground">
+            {missingCollectionsCount} configured collection{missingCollectionsCount === 1 ? " was" : "s were"} skipped because Raindrop did not return them.
+          </p>
+        )}
+      </section>
+    )}
+  </div>
+</Layout>

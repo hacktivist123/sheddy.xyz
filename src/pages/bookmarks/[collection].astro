@@ -1,0 +1,85 @@
+---
+import BookmarkCard from "../../components/BookmarkCard.astro";
+import {
+	featuredRaindropCollections,
+	hasConfiguredBookmarkCollections,
+} from "../../config/bookmarks";
+import Layout from "../../layouts/Layout.astro";
+import {
+	getCollectionBookmarks,
+	getConfiguredCollections,
+	hasRaindropToken,
+	type BookmarkCollectionSummary,
+	type BookmarkItem,
+} from "../../lib/raindrop";
+
+interface Props {
+	collection: BookmarkCollectionSummary;
+	items: BookmarkItem[];
+}
+
+export async function getStaticPaths() {
+	if (!hasRaindropToken() || !hasConfiguredBookmarkCollections) {
+		return [];
+	}
+
+	const collections = await getConfiguredCollections(
+		featuredRaindropCollections,
+	);
+
+	return Promise.all(
+		collections.map(async (collection) => ({
+			params: { collection: collection.slug },
+			props: {
+				collection,
+				items: await getCollectionBookmarks(collection.id),
+			},
+		})),
+	);
+}
+
+const { collection, items } = Astro.props;
+---
+
+<Layout
+  title={`${collection.title} Bookmarks - Shedrack Akintayo`}
+  description={collection.description}
+>
+  <div class="container mx-auto max-w-6xl px-4 py-16">
+    <div class="mx-auto max-w-4xl py-6 sm:py-10">
+      <a href="/bookmarks" data-astro-prefetch="hover" class="text-sm text-muted-foreground transition-colors hover:text-foreground">
+        &larr; Back to folders
+      </a>
+
+      <header class="mt-8 rounded-[2rem] border border-border/70 bg-card/90 p-8 shadow-[0_24px_60px_-42px_rgba(15,23,42,0.65)] sm:p-10">
+        <p class="text-sm font-medium uppercase tracking-[0.34em] text-muted-foreground">
+          Folder
+        </p>
+        <div class="mt-5 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+          <div class="max-w-2xl">
+            <h1 class="text-4xl font-semibold tracking-tight sm:text-5xl">
+              {collection.title}
+            </h1>
+            <p class="mt-4 text-lg leading-relaxed text-muted-foreground">
+              {collection.description}
+            </p>
+          </div>
+
+          <div class="inline-flex rounded-full border border-border/60 bg-background/75 px-4 py-2 text-sm text-muted-foreground">
+            {items.length} saved link{items.length === 1 ? "" : "s"}
+          </div>
+        </div>
+      </header>
+    </div>
+
+    {items.length === 0 ? (
+      <section class="mx-auto max-w-3xl rounded-[2rem] border border-dashed border-border bg-card/70 p-8 text-center">
+        <h2 class="text-2xl font-semibold tracking-tight">No links in this folder yet</h2>
+      </section>
+    ) : (
+      <section class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        {items.map((bookmark) => <BookmarkCard bookmark={bookmark} />)}
+      </section>
+    )}
+  </div>
+</Layout>

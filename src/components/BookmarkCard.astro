@@ -1,0 +1,87 @@
+---
+import type { BookmarkItem } from "../lib/raindrop";
+
+interface Props {
+	bookmark: BookmarkItem;
+}
+
+const { bookmark } = Astro.props;
+
+function getHostname(link: string): string {
+	try {
+		return new URL(link).hostname.replace(/^www\./, "");
+	} catch {
+		return link;
+	}
+}
+
+function formatDate(value?: string): string | null {
+	if (value === undefined) {
+		return null;
+	}
+
+	const date = new Date(value);
+
+	if (Number.isNaN(date.getTime())) {
+		return null;
+	}
+
+	return date.toLocaleDateString("en-US", {
+		month: "short",
+		day: "numeric",
+		year: "numeric",
+	});
+}
+
+const hostname = bookmark.domain ?? getHostname(bookmark.link);
+const summary = bookmark.excerpt ?? bookmark.note ?? `Saved from ${hostname}.`;
+const createdAt = formatDate(bookmark.created);
+---
+
+<article class="group h-full overflow-hidden rounded-[1.75rem] border border-border/70 bg-card/95 shadow-[0_24px_60px_-42px_rgba(15,23,42,0.7)] transition duration-200 hover:-translate-y-1 hover:border-primary/30 hover:shadow-[0_28px_80px_-40px_rgba(37,99,235,0.28)]">
+  <a href={bookmark.link} target="_blank" rel="noreferrer" class="flex h-full flex-col">
+    <div class="relative aspect-[16/10] overflow-hidden border-b border-border/60 bg-secondary/45">
+      {bookmark.cover ? (
+        <img
+          src={bookmark.cover}
+          alt=""
+          class="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+          loading="lazy"
+        />
+      ) : (
+        <div class="flex h-full items-end bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.22),_transparent_48%),linear-gradient(180deg,_rgba(255,255,255,0.3),_transparent_60%)] p-5 dark:bg-[radial-gradient(circle_at_top_left,_rgba(147,197,253,0.2),_transparent_48%),linear-gradient(180deg,_rgba(255,255,255,0.08),_transparent_60%)]">
+          <span class="max-w-[14ch] text-2xl font-semibold tracking-tight text-foreground/90">
+            {bookmark.title}
+          </span>
+        </div>
+      )}
+
+      <div class="absolute inset-0 bg-gradient-to-t from-background/75 via-transparent to-transparent" />
+
+      <div class="absolute left-4 top-4 inline-flex rounded-full border border-white/20 bg-background/75 px-3 py-1 text-[0.68rem] font-medium uppercase tracking-[0.28em] text-foreground/80 backdrop-blur-sm">
+        {bookmark.type ?? "link"}
+      </div>
+    </div>
+
+    <div class="flex flex-1 flex-col gap-5 p-5">
+      <div class="space-y-3">
+        <p class="text-[0.72rem] font-medium uppercase tracking-[0.28em] text-muted-foreground">
+          {hostname}
+        </p>
+        <h3 class="text-2xl font-semibold tracking-tight text-foreground transition-colors group-hover:text-primary">
+          {bookmark.title}
+        </h3>
+        <p class="text-sm leading-relaxed text-muted-foreground">
+          {summary}
+        </p>
+      </div>
+
+      <div class="mt-auto flex items-center justify-between gap-4 text-sm text-muted-foreground">
+        <span>{createdAt ?? "Saved link"}</span>
+        <span class="font-medium text-foreground transition-transform duration-200 group-hover:translate-x-1">
+          Visit site ->
+        </span>
+      </div>
+    </div>
+  </a>
+</article>

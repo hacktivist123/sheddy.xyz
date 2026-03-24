@@ -1,14 +1,15 @@
 ---
-import { ModeToggle } from './ModeToggle';
+import { ModeToggle } from "./ModeToggle";
 
 const navLinks = [
-  { href: '/', label: 'Home' },
-  { href: '/blog', label: 'Blog' },
-  { href: '/about', label: 'About' },
+	{ href: "/", label: "Home" },
+	{ href: "/blog", label: "Blog" },
+	{ href: "/bookmarks", label: "Bookmarks" },
+	{ href: "/about", label: "About" },
 ];
 ---
 
-<header class="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+<header transition:persist class="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/70">
   <div class="container mx-auto flex h-14 max-w-4xl items-center justify-between px-4">
     <a href="/" class="font-heading text-lg font-semibold tracking-tight">
       Shedrack Akintayo
@@ -18,12 +19,13 @@ const navLinks = [
       {navLinks.map(link => (
         <a 
           href={link.href} 
+          data-astro-prefetch={link.href === '/bookmarks' ? 'hover' : undefined}
           class="text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           {link.label}
         </a>
       ))}
-      <ModeToggle client:load />
-    </nav>
+		<ModeToggle client:load />
+	    </nav>
   </div>
 </header>

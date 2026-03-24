@@ -1,0 +1,129 @@
+---
+import { fade } from "astro:transitions";
+import type { BookmarkCollectionSummary } from "../lib/raindrop";
+
+interface Props {
+	collections: BookmarkCollectionSummary[];
+	mode?: "browse" | "setup";
+	activeSlug?: string;
+}
+
+const { collections, mode = "browse", activeSlug } = Astro.props;
+
+function formatCount(count: number): string {
+	return `${count} link${count === 1 ? "" : "s"}`;
+}
+
+function formatSetupMeta(collection: BookmarkCollectionSummary): string {
+	return `id ${collection.id} · ${formatCount(collection.count)}`;
+}
+
+function folderTint(color?: string): string | undefined {
+	if (color === undefined) {
+		return undefined;
+	}
+
+	return `background: linear-gradient(180deg, color-mix(in oklab, ${color} 28%, white) 0%, color-mix(in oklab, ${color} 58%, var(--color-card)) 100%);`;
+}
+---
+
+<div transition:animate={fade({ duration: "0.16s" })} class="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-x-2 gap-y-6 sm:grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] sm:gap-x-4 sm:gap-y-8">
+	{collections.map((collection) => {
+		const isClickable = mode === "browse" && collection.slug.length > 0;
+		const isActive = collection.slug === activeSlug;
+		const transitionName = `bookmark-folder-${collection.slug || collection.id}`;
+
+		return (
+			<div class="flex justify-center">
+				{isClickable ? (
+					<a
+						transition:name={transitionName}
+						href={`/bookmarks/${collection.slug}`}
+						data-astro-prefetch="viewport"
+						class={`group flex w-full max-w-[10rem] flex-col items-center rounded-xl px-2 py-3 text-center transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/55 focus-visible:ring-offset-2 ${isActive ? 'bg-accent/60 shadow-sm ring-1 ring-border/50' : 'hover:bg-accent/35'}`}
+					>
+						<div class="relative h-14 w-16 shrink-0 sm:h-16 sm:w-20">
+							<div
+								class="absolute left-1 top-0 h-3 w-7 rounded-t-md border border-b-0 border-border/50 bg-secondary/90 transition-transform duration-150 group-hover:-translate-y-0.5"
+								style={folderTint(collection.color)}
+							/>
+							<div 
+								class="absolute inset-x-0 bottom-0 h-[3.2rem] sm:h-[3.6rem] rounded-lg border border-border/50 bg-secondary/80 transition-transform duration-150 group-hover:-translate-y-0.5"
+								style={folderTint(collection.color)}
+							/>
+							<div class={`absolute inset-x-1.5 bottom-1.5 h-[2.8rem] sm:h-[3.2rem] rounded-sm border border-border/50 bg-background shadow-sm transition-transform duration-300 ${isActive ? '-translate-y-3 rotate-3' : 'group-hover:-translate-y-3 group-hover:rotate-3'}`}>
+								{collection.cover ? (
+									<img
+										src={collection.cover}
+										alt=""
+										class="h-full w-full rounded-sm object-cover opacity-90"
+										loading="lazy"
+									/>
+								) : (
+									<div class="flex h-full w-full flex-col gap-1 rounded-sm bg-muted/20 p-1.5">
+										<div class="h-1 w-3/4 rounded-full bg-muted-foreground/30" />
+										<div class="h-1 w-1/2 rounded-full bg-muted-foreground/30" />
+										<div class="h-1 w-full rounded-full bg-muted-foreground/30" />
+									</div>
+								)}
+							</div>
+							<div class="absolute inset-x-0 bottom-0 h-[2.6rem] sm:h-[3rem] overflow-hidden rounded-lg border border-border/50 bg-[linear-gradient(180deg,rgba(255,255,255,0.85),rgba(255,255,255,0.2))] shadow-sm backdrop-blur-md transition-all duration-150 group-hover:-translate-y-1 dark:bg-[linear-gradient(180deg,rgba(255,255,255,0.2),rgba(255,255,255,0.05))]"
+								style={folderTint(collection.color)}
+							/>
+						</div>
+
+						<div class="mt-2 space-y-0.5">
+							<h3 class={`line-clamp-2 max-w-[12ch] text-xs font-medium leading-tight transition-colors ${isActive ? 'text-primary' : 'text-foreground group-hover:text-primary'}`}>
+								{collection.title}
+							</h3>
+							<p class="text-[0.65rem] leading-snug text-muted-foreground">
+								{formatCount(collection.count)}
+							</p>
+						</div>
+					</a>
+				) : (
+					<div transition:name={transitionName} class="flex w-full max-w-[10rem] flex-col items-center rounded-xl px-2 py-3 text-center">
+						<div class="relative h-14 w-16 shrink-0 sm:h-16 sm:w-20">
+							<div
+								class="absolute left-1 top-0 h-3 w-7 rounded-t-md border border-b-0 border-border/50 bg-secondary/90"
+								style={folderTint(collection.color)}
+							/>
+							<div 
+								class="absolute inset-x-0 bottom-0 h-[3.2rem] sm:h-[3.6rem] rounded-lg border border-border/50 bg-secondary/80"
+								style={folderTint(collection.color)}
+							/>
+							<div class="absolute inset-x-1.5 bottom-1.5 h-[2.8rem] sm:h-[3.2rem] rounded-sm border border-border/50 bg-background shadow-sm">
+								{collection.cover ? (
+									<img
+										src={collection.cover}
+										alt=""
+										class="h-full w-full rounded-sm object-cover opacity-90"
+										loading="lazy"
+									/>
+								) : (
+									<div class="flex h-full w-full flex-col gap-1 rounded-sm bg-muted/20 p-1.5">
+										<div class="h-1 w-3/4 rounded-full bg-muted-foreground/30" />
+										<div class="h-1 w-1/2 rounded-full bg-muted-foreground/30" />
+										<div class="h-1 w-full rounded-full bg-muted-foreground/30" />
+									</div>
+								)}
+							</div>
+							<div class="absolute inset-x-0 bottom-0 h-[2.6rem] sm:h-[3rem] overflow-hidden rounded-lg border border-border/50 bg-[linear-gradient(180deg,rgba(255,255,255,0.85),rgba(255,255,255,0.2))] shadow-sm backdrop-blur-md dark:bg-[linear-gradient(180deg,rgba(255,255,255,0.2),rgba(255,255,255,0.05))]"
+								style={folderTint(collection.color)}
+							/>
+						</div>
+
+						<div class="mt-2 space-y-0.5">
+							<h3 class="line-clamp-2 max-w-[12ch] text-xs font-medium leading-tight text-foreground">
+								{collection.title}
+							</h3>
+							<p class="text-[0.65rem] leading-snug text-muted-foreground">
+								{formatSetupMeta(collection)}
+							</p>
+						</div>
+					</div>
+				)}
+			</div>
+		);
+	})}
+</div>
