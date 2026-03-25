@@ -6,11 +6,11 @@ import {
 } from "../../config/bookmarks";
 import Layout from "../../layouts/Layout.astro";
 import {
+	type BookmarkCollectionSummary,
+	type BookmarkItem,
 	getCollectionBookmarks,
 	getConfiguredCollections,
 	hasRaindropToken,
-	type BookmarkCollectionSummary,
-	type BookmarkItem,
 } from "../../lib/raindrop";
 
 interface Props {

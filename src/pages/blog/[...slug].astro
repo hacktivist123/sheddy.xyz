@@ -1,39 +1,33 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import { getCollection, render } from 'astro:content';
-import type { CollectionEntry } from 'astro:content';
+import type { CollectionEntry } from "astro:content";
+import { getCollection, render } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
 
 export async function getStaticPaths() {
-  const posts = await getCollection('blog');
-  return posts.map((post) => ({
-    params: { slug: post.id },
-    props: { post },
-  }));
+	const posts = await getCollection("blog");
+	return posts.map((post) => ({
+		params: { slug: post.id },
+		props: { post },
+	}));
 }
 
-import { ReadingProgress } from '../../components/ReadingProgress';
+import { ReadingProgress } from "../../components/ReadingProgress";
 
 interface Props {
-  post: CollectionEntry<'blog'>;
+	post: CollectionEntry<"blog">;
 }
 
 const { post } = Astro.props;
-const { Content } = await render(post);
+const { Content, remarkPluginFrontmatter } = await render(post);
 const ogImagePath = `/og/blog/${post.id.split("/").map(encodeURIComponent).join("/")}.svg`;
+const minutesRead = remarkPluginFrontmatter.minutesRead;
 
 function formatDate(date: Date): string {
-  return date.toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  });
-}
-
-function getReadingTime(content: string): string {
-  const wordsPerMinute = 200;
-  const words = content.split(/\s+/).length;
-  const minutes = Math.ceil(words / wordsPerMinute);
-  return `${minutes} min read`;
+	return date.toLocaleDateString("en-US", {
+		year: "numeric",
+		month: "long",
+		day: "numeric",
+	});
 }
 ---
 
@@ -45,10 +39,12 @@ function getReadingTime(content: string): string {
 >
   <ReadingProgress client:load />
   <article class="container mx-auto max-w-5xl px-4 py-16">
-    <header class="py-12">
-      <time class="text-sm font-medium tracking-wide text-muted-foreground">
-        {formatDate(post.data.date)}
-      </time>
+	<header class="py-12">
+	  <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium tracking-wide text-muted-foreground">
+		<time>{formatDate(post.data.date)}</time>
+		{minutesRead && <span aria-hidden="true">&middot;</span>}
+		{minutesRead && <span>{minutesRead}</span>}
+	  </div>
       <h1 class="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">
         {post.data.title}
       </h1>

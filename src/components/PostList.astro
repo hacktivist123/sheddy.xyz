@@ -1,40 +1,42 @@
 ---
 interface Post {
-  id: string;
-  data: {
-    title: string;
-    date: Date;
-  };
+	id: string;
+	data: {
+		title: string;
+		date: Date;
+	};
 }
 
 interface Props {
-  posts: Post[];
-  limit?: number;
+	posts: Post[];
+	limit?: number;
 }
 
 const { posts, limit } = Astro.props;
 const displayPosts = limit ? posts.slice(0, limit) : posts;
 
 function formatDate(date: Date): string {
-  return date.toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: '2-digit', 
-    day: '2-digit' 
-  });
+	return date.toLocaleDateString("en-US", {
+		year: "numeric",
+		month: "short",
+		day: "numeric",
+	});
 }
 ---
 
-<ul class="space-y-4">
+<ul class="flex flex-col gap-8">
   {displayPosts.map(post => (
-    <li class="flex flex-col gap-1.5 sm:flex-row sm:gap-5">
-      <time class="shrink-0 tabular-nums text-sm font-medium tracking-wide text-muted-foreground">
-        {formatDate(post.data.date)}
-      </time>
+    <li>
       <a 
         href={`/blog/${post.id}`}
-        class="font-heading text-lg font-medium leading-snug tracking-[-0.01em] transition-colors hover:text-primary"
+        class="group flex flex-col gap-2 sm:flex-row sm:items-baseline sm:gap-8"
       >
-        {post.data.title}
+        <time class="shrink-0 tabular-nums text-sm text-muted-foreground transition-colors group-hover:text-foreground sm:w-32">
+          {formatDate(post.data.date)}
+        </time>
+        <span class="font-heading text-lg font-medium leading-snug tracking-[-0.01em] text-foreground decoration-muted-foreground/30 underline-offset-4 transition-colors group-hover:underline group-hover:decoration-foreground">
+          {post.data.title}
+        </span>
       </a>
     </li>
   ))}

@@ -8,9 +8,9 @@ import "@fontsource/zen-kaku-gothic-new/700.css";
 import "@fontsource/shippori-mincho/400.css";
 import "@fontsource/shippori-mincho/600.css";
 import "@fontsource/shippori-mincho/800.css";
-import Header from "../components/Header.astro";
-import Footer from "../components/Footer.astro";
 import { CommandMenu } from "../components/CommandMenu";
+import Footer from "../components/Footer.astro";
+import Header from "../components/Header.astro";
 
 interface Props {
 	title: string;
@@ -116,7 +116,7 @@ const {
       const createCopyButton = (codeBlock) => {
         const copyButton = document.createElement('button');
         copyButton.type = 'button';
-        copyButton.className = 'absolute right-2 top-2 rounded-md border border-border bg-muted p-2 text-muted-foreground opacity-0 transition-all hover:bg-accent hover:text-accent-foreground group-hover:opacity-100 focus:opacity-100';
+        copyButton.className = 'absolute right-2 top-2 rounded-md border border-border bg-muted p-2 text-muted-foreground opacity-0 transition-[opacity,background-color,color] duration-200 ease-out hover:bg-accent hover:text-accent-foreground group-hover:opacity-100 focus:opacity-100';
         copyButton.innerHTML = copyIcon;
         copyButton.setAttribute('aria-label', 'Copy code');
         copyButton.addEventListener('click', async () => {

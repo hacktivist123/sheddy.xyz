@@ -7,25 +7,33 @@ const navLinks = [
 	{ href: "/bookmarks", label: "Bookmarks" },
 	{ href: "/about", label: "About" },
 ];
+
+const pathname = Astro.url.pathname;
 ---
 
 <header transition:persist class="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/70">
-  <div class="container mx-auto flex h-14 max-w-4xl items-center justify-between px-4">
-    <a href="/" class="inline-flex max-w-[6.6rem] shrink-0 flex-col font-heading text-[0.82rem] font-semibold leading-[0.9] tracking-[-0.02em] sm:max-w-none sm:block sm:text-lg sm:leading-none sm:tracking-tight">
-      <span class="block md:inline">Shedrack</span>
-      <span class="block md:inline">Akintayo</span>
+  <div class="container mx-auto flex h-16 max-w-4xl items-center justify-between px-4">
+    <a href="/" class="inline-flex max-w-[6.6rem] shrink-0 flex-col font-heading text-[0.82rem] font-semibold leading-[0.9] tracking-[-0.02em] transition-opacity hover:opacity-80 sm:max-w-none sm:block sm:text-lg sm:leading-none sm:tracking-tight">
+      <span class="md:inline">SA</span>
     </a>
 
     <nav class="flex items-center gap-4 sm:gap-6">
-      {navLinks.map(link => (
-        <a 
-          href={link.href} 
-          data-astro-prefetch={link.href === '/bookmarks' ? 'hover' : undefined}
-          class="text-sm text-muted-foreground transition-colors hover:text-foreground"
-        >
-          {link.label}
-        </a>
-      ))}
+      {navLinks.map(link => {
+        const isActive = link.href === '/' ? pathname === '/' : pathname.startsWith(link.href);
+        return (
+          <a 
+            href={link.href} 
+            data-astro-prefetch={link.href === '/bookmarks' ? 'hover' : undefined}
+            aria-current={isActive ? "page" : undefined}
+            class:list={[
+              "text-sm transition-colors",
+              isActive ? "text-foreground font-medium" : "text-muted-foreground hover:text-foreground"
+            ]}
+          >
+            {link.label}
+          </a>
+        );
+      })}
 		<ModeToggle client:load />
 	    </nav>
   </div>

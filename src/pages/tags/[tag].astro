@@ -1,29 +1,28 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import PostList from '../../components/PostList.astro';
-import { getCollection } from 'astro:content';
-import type { CollectionEntry } from 'astro:content';
+import { getCollection } from "astro:content";
+import PostList from "../../components/PostList.astro";
+import Layout from "../../layouts/Layout.astro";
 
 export async function getStaticPaths() {
-  const allPosts = await getCollection('blog', ({ data }) => !data.draft);
-  
-  // Extract all unique tags
-  const uniqueTags = [...new Set(allPosts.flatMap((post) => post.data.tags || []))];
+	const allPosts = await getCollection("blog", ({ data }) => !data.draft);
 
-  return uniqueTags.map((tag) => {
-    const filteredPosts = allPosts.filter((post) => 
-      post.data.tags?.includes(tag)
-    );
-    // Sort posts by date
-    const sortedPosts = filteredPosts.sort((a, b) => 
-      b.data.date.getTime() - a.data.date.getTime()
-    );
-    
-    return {
-      params: { tag },
-      props: { posts: sortedPosts },
-    };
-  });
+	const uniqueTags = [
+		...new Set(allPosts.flatMap((post) => post.data.tags || [])),
+	];
+
+	return uniqueTags.map((tag) => {
+		const filteredPosts = allPosts.filter((post) =>
+			post.data.tags?.includes(tag),
+		);
+		const sortedPosts = filteredPosts.sort(
+			(a, b) => b.data.date.getTime() - a.data.date.getTime(),
+		);
+
+		return {
+			params: { tag },
+			props: { posts: sortedPosts },
+		};
+	});
 }
 
 const { tag } = Astro.params;

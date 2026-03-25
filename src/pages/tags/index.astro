@@ -1,15 +1,20 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import { getCollection } from 'astro:content';
+import { getCollection } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
 
-const allPosts = await getCollection('blog', ({ data }) => !data.draft);
-const tags = [...new Set(allPosts.flatMap((post) => post.data.tags || []))].sort();
+const allPosts = await getCollection("blog", ({ data }) => !data.draft);
+const tags = [
+	...new Set(allPosts.flatMap((post) => post.data.tags || [])),
+].sort();
 
 // Calculate counts per tag (optional but nice)
-const tagCounts = tags.reduce((acc, tag) => {
-  acc[tag] = allPosts.filter(p => p.data.tags?.includes(tag)).length;
-  return acc;
-}, {} as Record<string, number>);
+const tagCounts = tags.reduce(
+	(acc, tag) => {
+		acc[tag] = allPosts.filter((p) => p.data.tags?.includes(tag)).length;
+		return acc;
+	},
+	{} as Record<string, number>,
+);
 ---
 
 <Layout title="Tags - Shedrack Akintayo">

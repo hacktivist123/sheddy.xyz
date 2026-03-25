@@ -1,34 +1,34 @@
 ---
-import { TimeDisplay } from './TimeDisplay';
+import { TimeDisplay } from "./TimeDisplay";
 
 const currentYear = new Date().getFullYear();
 
 const socialLinks = [
-  { href: 'https://github.com/hacktivist123', label: 'GitHub' },
-  { href: 'https://twitter.com/coder_blvck', label: 'Twitter' },
-  { href: 'https://linkedin.com/in/shedrackakintayo', label: 'LinkedIn' },
+	{ href: "https://github.com/hacktivist123", label: "GitHub" },
+	{ href: "https://twitter.com/coder_blvck", label: "Twitter" },
+	{ href: "https://linkedin.com/in/shedrackakintayo", label: "LinkedIn" },
 ];
 ---
 
-<footer class="border-t border-border/40 py-8">
+<footer class="border-t border-border/40 py-12 md:py-16">
   <div class="container mx-auto max-w-4xl px-4">
-    <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
-      <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+    <div class="flex flex-col items-center justify-between gap-6 sm:flex-row sm:gap-4">
+      <div class="flex flex-col items-center gap-2 sm:flex-row sm:gap-4">
         <p class="text-sm text-muted-foreground">
           © {currentYear} Shedrack Akintayo
         </p>
-        <span class="hidden text-muted-foreground sm:inline">·</span>
-        <div class="text-sm">
+        <span class="hidden text-muted-foreground/50 sm:inline">·</span>
+        <div class="text-sm text-muted-foreground/80">
           <TimeDisplay client:load />
         </div>
       </div>
-      <nav class="flex gap-4">
+      <nav class="flex gap-5 sm:gap-6">
         {socialLinks.map(link => (
           <a 
             href={link.href}
             target="_blank"
             rel="noopener noreferrer"
-            class="text-sm text-muted-foreground transition-colors hover:text-foreground"
+            class="text-sm text-muted-foreground transition-colors hover:text-foreground hover:underline underline-offset-4"
           >
             {link.label}
           </a>

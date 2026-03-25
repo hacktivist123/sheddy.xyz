@@ -91,7 +91,7 @@ function getNestedNumber(
 		return undefined;
 	}
 
-	return getNumber(nested["$id"]);
+	return getNumber(nested.$id);
 }
 
 function parseCollection(value: unknown): RaindropCollection | null {

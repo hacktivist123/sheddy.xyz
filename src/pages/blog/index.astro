@@ -1,11 +1,16 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import PostList from '../../components/PostList.astro';
-import { getCollection } from 'astro:content';
-import type { CollectionEntry } from 'astro:content';
+import type { CollectionEntry } from "astro:content";
+import { getCollection } from "astro:content";
+import PostList from "../../components/PostList.astro";
+import Layout from "../../layouts/Layout.astro";
 
-const posts: CollectionEntry<'blog'>[] = await getCollection('blog', ({ data }) => !data.draft);
-const sortedPosts = posts.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+const posts: CollectionEntry<"blog">[] = await getCollection(
+	"blog",
+	({ data }) => !data.draft,
+);
+const sortedPosts = posts.sort(
+	(a, b) => b.data.date.getTime() - a.data.date.getTime(),
+);
 ---
 
 <Layout title="Blog - Shedrack Akintayo">

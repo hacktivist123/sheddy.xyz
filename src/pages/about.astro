@@ -1,17 +1,30 @@
 ---
-import Layout from "../layouts/Layout.astro";
 import TechStack from "../components/TechStack.astro";
+import Layout from "../layouts/Layout.astro";
 ---
 
 <Layout title="About - Shedrack Akintayo">
-    <div class="container mx-auto max-w-4xl px-4 py-16">
-        <section class="py-12">
-            <h1 class="text-5xl font-semibold tracking-tight sm:text-6xl">About</h1>
-        </section>
+    <div class="container mx-auto max-w-5xl px-4 py-16 sm:py-24">
+        <header class="mb-12 md:mb-20">
+            <h1 class="text-4xl font-medium tracking-tight sm:text-5xl text-neutral-900 dark:text-neutral-100">About</h1>
+        </header>
 
-        <div class="grid gap-12 md:grid-cols-[2fr_1fr]">
-            <section class="prose prose-neutral dark:prose-invert max-w-none">
-                <p>
+        <div class="grid gap-16 md:grid-cols-[1fr_300px] lg:grid-cols-[1fr_380px] items-start">
+            <div class="order-first md:order-last">
+                <figure class="relative group md:sticky md:top-32">
+                    <div class="absolute inset-0 -rotate-2 rounded-2xl bg-neutral-200 dark:bg-neutral-800 transition-transform duration-500 ease-out group-hover:-rotate-1"></div>
+                    <div class="relative rounded-2xl bg-white dark:bg-neutral-950 p-2 ring-1 ring-neutral-200 dark:ring-neutral-800 shadow-sm transition-transform duration-500 ease-out group-hover:-translate-y-1">
+                        <img
+                            src="/me.jpg"
+                            alt="Shedrack Akintayo"
+                            class="w-full h-auto rounded-xl object-cover transition-[filter] duration-500 grayscale-[0.15] group-hover:grayscale-0"
+                        />
+                    </div>
+                </figure>
+            </div>
+
+            <section class="prose prose-neutral dark:prose-invert prose-headings:font-medium prose-h2:text-2xl prose-h3:text-lg prose-p:leading-relaxed prose-a:underline-offset-4 hover:prose-a:text-neutral-600 dark:hover:prose-a:text-neutral-300 max-w-none">
+                <p class="text-xl text-neutral-700 dark:text-neutral-300 leading-relaxed mb-12">
                     I bridge the gap between complex technology and human
                     understanding. As a Technical Writer with deep expertise in
                     DevOps and cloud architecture, I transform intricate
@@ -66,7 +79,9 @@ import TechStack from "../components/TechStack.astro";
                 </ul>
 
                 <h2>Tech Stack</h2>
-                <TechStack />
+                <div class="not-prose my-8 rounded-2xl bg-neutral-50 dark:bg-neutral-800/30 p-6 sm:p-8 ring-1 ring-neutral-100 dark:ring-neutral-800/50">
+                    <TechStack />
+                </div>
 
                 <h2>Beyond the Screen</h2>
                 <p>
@@ -94,20 +109,6 @@ import TechStack from "../components/TechStack.astro";
                     >.
                 </p>
             </section>
-
-            <div class="order-first md:order-last">
-                <div class="relative">
-                    <div
-                        class="absolute inset-0 rotate-6 rounded-2xl bg-linear-to-tr from-primary/20 to-secondary/20"
-                    >
-                    </div>
-                    <img
-                        src="/me.jpg"
-                        alt="Shedrack Akintayo"
-                        class="relative rotate-3 rounded-2xl shadow-xl transition-all duration-300 hover:rotate-0 hover:scale-[1.02]"
-                    />
-                </div>
-            </div>
         </div>
     </div>
 </Layout>
