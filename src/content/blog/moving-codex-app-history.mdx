@@ -1,0 +1,167 @@
+---
+title: 'Moving Codex App Chat History and Context to a New Mac'
+draft: false
+date: '2026-02-21'
+lastmod: '2026-02-21'
+summary: "I recently migrated local Codex app chat history from one Mac to another and noted the caveats along the way. This guide captures the simplest working approach."
+tags: ['AI']
+---
+
+I recently migrated local Codex app chat history from one Mac to another and noted the caveats along the way. This guide captures the simplest working approach.
+
+If you want your existing Codex threads, history, and local context on another Mac, the important directory is:
+
+```text
+/Users/<username>/.codex
+```
+
+That folder contains the local session files, thread index, SQLite state, automations, skills, and other metadata that make old chats show up correctly.
+
+On my machine, `~/Library/Application Support/Codex` existed as well, but that turned out to be optional for this migration. The core history lived in `~/.codex`.
+
+## What I migrated
+
+The important files and folders were:
+
+- `~/.codex/sessions/`
+- `~/.codex/archived_sessions/`
+- `~/.codex/session_index.jsonl`
+- `~/.codex/state_5.sqlite`
+- `~/.codex/logs_2.sqlite`
+- `~/.codex/config.toml`
+- `~/.codex/automations/`
+- `~/.codex/skills/`
+- `~/.codex/memories/`
+
+The main lesson was simple: copying only the raw chat files is not enough if you also want the Codex app to preserve thread metadata and local context cleanly. Copying the whole `~/.codex` directory is the safest option.
+
+## Preconditions that made this easier
+
+My new machine used the same username as the old one and that matters because Codex stores absolute local paths in its local state. If the username or home directory changes, old threads may still exist, but file links and workspace references can point to the old machine paths.
+
+This works best when:
+
+- both Macs use the same username,
+- the home path is the same,
+- and the repositories live in the same locations on disk.
+
+For example, if the old machine used:
+
+```text
+/Users/ausername/Developer/codebase
+```
+
+then the new machine should ideally use that same path too.
+
+## The working migration flow
+
+1. Install Codex on the new Mac.
+2. Open Codex once on the new Mac, then quit it.
+3. Quit Codex on the old Mac too.
+4. Copy `~/.codex` from the old Mac to the new Mac.
+5. Open Codex on the new Mac.
+6. Sign in again if Codex asks for authentication.
+
+In practice, once `~/.codex` had been copied successfully, opening Codex on the new Mac was the last meaningful step.
+
+## The rsync command that mattered
+
+We used `rsync` from the old Mac to the new Mac.
+
+Because some cached plugin directories inside `~/.codex` contained nested Git metadata that caused permission errors, the most reliable version was:
+
+```bash
+rsync -aEP \
+  --exclude '.tmp/' \
+  --exclude '.git/' \
+  ~/.codex/ \
+  ausername@NEW-MAC:/Users/ausername/.codex/
+```
+
+Replace `NEW-MAC` with the hostname or IP address of the target Mac.
+
+## Caveats I hit
+
+### 1. Codex must be closed on both machines
+
+This is important because the local state includes SQLite files. Copying while Codex is actively writing to them can leave you with partial or inconsistent state.
+
+### 2. The macOS rsync version was older than expected
+
+On my machine, `/usr/bin/rsync` reported:
+
+```text
+openrsync: protocol version 29
+rsync version 2.6.9 compatible
+```
+
+That meant newer flags like `--info=progress2` were not supported. The compatible choice was:
+
+```bash
+-P
+```
+
+which gives resumable transfers plus progress output.
+
+### 3. Some nested Git directories caused permission errors
+
+The first transfer attempts failed on files like:
+
+- `~/.codex/.tmp/plugins/.git/...`
+- `~/.codex/superpowers/.git/...`
+- `~/.codex/vendor_imports/skills/.git/...`
+
+Those were not the actual chat history. Excluding `.tmp/` and nested `.git/` directories avoided those errors without losing the important conversation state.
+
+### 4. `~/Library/Application Support/Codex` was optional
+
+I also found a macOS app support directory here:
+
+```text
+~/Library/Application Support/Codex
+```
+
+That looked more like UI, browser, cache, and app-shell state. It may be useful if you want to preserve more of the surrounding app state, but it was not the critical piece for restoring chat history.
+
+For my use case, `~/.codex` was the part that mattered.
+
+### 5. Spaces in remote paths can break rsync
+
+When trying to copy `~/Library/Application Support/Codex`, the remote path with spaces caused `rsync` to fail with:
+
+```text
+server receiver mode requires two argument
+```
+
+This was one more reason to focus on `~/.codex` first, because it has no spaces in its path and contains the important history.
+
+### 6. Authentication may still need to be redone
+
+Even after copying local state, it is safer to expect that Codex might ask you to sign in again on the new Mac. That is normal.
+
+## Recommendation
+
+If you need to move Codex chat history and context from one Mac to another, use this rule of thumb:
+
+1. Treat `~/.codex` as the source of truth.
+2. Keep the same username and workspace paths if possible.
+3. Close Codex before copying.
+4. Use `rsync -aEP`.
+5. Exclude `.tmp/` and nested `.git/` directories if permission errors appear.
+6. Open Codex on the new Mac and sign in again if prompted.
+
+## Copy-paste summary
+
+```bash
+rsync -aEP \
+  --exclude '.tmp/' \
+  --exclude '.git/' \
+  ~/.codex/ \
+  ausername@NEW-MAC:/Users/ausername/.codex/
+```
+
+After that:
+
+1. Open Codex on the new Mac.
+2. Sign in if needed.
+3. Confirm your old threads appear.
