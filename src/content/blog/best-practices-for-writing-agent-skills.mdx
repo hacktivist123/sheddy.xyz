@@ -1,0 +1,158 @@
+---
+title: 'Best Practices for Writing Agent Skills'
+draft: false
+date: '2026-05-30'
+lastmod: '2026-05-30'
+summary: "I've been writing agent skills for Claude Code, these are the patterns that held up: thin SKILL.md files, deterministic scripts for the boring parts, progressive disclosure, and being disciplined about how many skills you leave enabled."
+tags: ['AI', 'Developer Experience']
+---
+
+I've spent the last few weeks writing agent skills, and two of them taught me most of what I now believe about the format. One is an internal skill that turns implementation PRs into draft documentation PRs. The other is [agent-session-resume](https://github.com/hacktivist123/agent-session-resume), a small open-source skill that helps an agent pick up work from a previous session without redoing it.
+
+They're built very differently — one ships a pipeline of Python scripts, the other is pure instructions with no runtime code at all. The contrast between both skills is exactly what made the lessons stick. This post is the set of practices I keep coming back to.
+
+## A skill is a prompt that loads on demand
+
+Before the patterns, the mental model. A skill is a folder with a `SKILL.md` at its root. The frontmatter `description` is always in context so the model can decide when to reach for the skill. The body loads when the skill activates. Anything else in the folder — references, scripts, templates — loads only when the model goes looking for it.
+
+That last point is the most important bit. Context is finite, and everything you put in `SKILL.md` is paid for on every single session where the skill could fire. The best skills treat the `SKILL.md` like a hot path: keep it small, push everything else down a level.
+
+## Write the description as "Use when…"
+
+The description is the only part of the skill the model sees before deciding to activate it. So it should describe the *situation*, not the feature.
+
+Both skills follow the same shape. From `agent-session-resume`:
+
+```yaml
+---
+name: agent-session-resume
+description: Use when continuing work from a previous AI coding-agent session, handoff transcript, chat log, exported conversation, saved artifact set, or session summary.
+---
+```
+
+Two things worth copying here. It starts with "Use when", which forces you to write a trigger instead of a tagline. And it lists synonyms for the trigger surface — *session, handoff transcript, chat log, exported conversation, saved artifact set, session summary* — so the skill fires whether the user says "resume my session" or "pick up from this chat log."
+
+A bad description reads like marketing copy. A good one reads like the first line of a support ticket.
+
+## Let scripts do the deterministic work
+
+This is the biggest lesson from the internal skill I built, and it's the one I'd most want a past version of myself to internalize.
+
+A documentation PR generator has to do a lot of mechanical work before any writing happens: fetch the PR and its diff, walk linked issues up to the parent epic and down to sub-issues, dedupe everything, classify whether the feature needs a release note entry or not, find candidate doc paths and neighbor pages. None of that is judgment. It's data shaping, and asking a language model to do it is slow, inconsistent run-to-run, and a great way to burn tokens hallucinating.
+
+So the skill doesn't. Each of those steps is a small Python script (stdlib only — no `pip install` at runtime) with a stable contract: read inputs from CLI flags, emit JSON to stdout. `SKILL.md` pipes them together like a Unix pipeline:
+
+```bash
+PYTHONPATH="${CLAUDE_SKILL_DIR}" python3 -m scripts.fetch_pr --pr <N> > /tmp/bundle.json
+```
+
+The model only steps in where judgment is actually required. There's exactly one step in the whole pipeline flagged as the model's:
+
+> **Generate.** This is the LLM step — no script.
+
+At that point the model reads the JSON the scripts produced, plus a couple of neighbor pages for tone, and writes the actual docs prose. Scripts produce facts and structure; the model produces language and choices; the human approves at a few gates. The boundary is clean: the classifier script *decides* a release note is needed and what shape it takes, but the model *writes* the entry.
+
+A nice side effect of the JSON-over-stdout contract is that every stage is independently runnable and unit-testable. The skill ships a `unittest` suite with frozen `gh` output fixtures, so the pipeline can be exercised with no network. Skill scripts are production code; treat them that way.
+
+The anti-hallucination angle is worth calling out too. The grounding script matches touched Go file paths against a catalog of documented concepts, and when nothing matches it returns an empty list rather than guessing:
+
+> If no concept matches: `concepts: []` … never invents concept IDs.
+
+You cannot reliably instruct a model not to invent an ID. You *can* write a script that never does.
+
+## Keep SKILL.md short, push the rest into references/
+
+The other half of the split is progressive disclosure. The rule I now follow, lifted straight from the internal skill spec:
+
+> Keep `SKILL.md` under ~250 lines — it's loaded into every session. Long static content (conventions, heuristics catalogs) goes into `references/*.md` and is loaded on demand.
+
+Its `SKILL.md` is 149 lines. The bulky stuff — front-matter conventions, the full release-note heuristics table, screenshot rules — lives in `references/` and gets pulled in only at the generate step, via explicit pointers like:
+
+```txt
+See ${CLAUDE_SKILL_DIR}/references/release-note-heuristics.md ("Insertion order").
+```
+
+`agent-session-resume` uses the same pattern for a different reason: portability. The `SKILL.md` stays platform-agnostic and defers the brittle, specific details — exact filesystem paths and ready-to-run shell commands — to per-platform adapter files:
+
+```md
+## Platform References
+- Claude Code: read `references/claude-code.md`.
+- Codex: read `references/codex.md`.
+- Antigravity: read `references/antigravity.md`.
+- OpenCode: read `references/opencode.md`.
+```
+
+So `claude-code.md` is where you'll find that the full transcript lives at `~/.claude/projects/<project>/<session>.jsonl` while `~/.claude/history.jsonl` is just prompt history. That detail is volatile and specific to one tool — exactly the kind of thing that shouldn't sit in the always-loaded core.
+
+The principle generalizes: stable and general goes in `SKILL.md`; volatile, long, or situational goes in `references/` behind a pointer.
+
+## Spend as much effort on "never" as on "do"
+
+`agent-session-resume` is mostly instructions, and the most valuable instructions in it are the negative ones. Its guardrails section is a list of things the agent must *not* do:
+
+```md
+## Guardrails
+- Never assume the newest file is the right transcript if the user supplied a title or path.
+- Never summarize from filenames alone.
+- Never reset, revert, or discard existing changes unless the user explicitly asks.
+- Never treat a compact summary as equivalent to the full transcript when a full transcript is available.
+- Never mark a task DONE only because it was planned.
+- Never mark a task PARTIALLY DONE only because it appeared in a plan; there must be evidence work started.
+```
+
+Each one is a failure mode someone actually hit, written down so the model doesn't hit it again. The internal skill_ does the same for destructive git operations — never use `--force`, never `--amend`, never push without an explicit `y`, only ever open *draft* PRs — and backs the prose rules up in code. Where a mistake is expensive and irreversible, encode the prohibition in both places.
+
+A related pattern in both skills: current repo state wins over any claim in a transcript or summary. Files and `git status` are ground truth; an agent's notes about what it did are evidence, not proof.
+
+## Make the output shape explicit
+
+`agent-session-resume` requires the agent to lead with a fixed checkpoint before touching anything:
+
+```md
+## Required Response Shape
+
+Before continuing execution, report:
+
+    Brief context summary
+    Task status breakdown
+    Clear next action
+
+Then continue immediately unless blocked.
+```
+
+A defined output contract does two things: it makes behavior predictable for the user, and it makes the skill testable. Which brings me to the last build-time practice.
+
+## Encode the contract as validators and ship eval fixtures
+
+Because a skill is mostly text, it's easy to let it rot. `agent-session-resume` fights that with CI validators that treat the skill's structure as a spec: the description has to start with "Use when" and stay under 500 characters, the required section headings have to exist, every `references/*.md` has to be linked from `SKILL.md` and mention its platform.
+
+It also ships golden fixtures — realistic session material paired with an `expected.md` — and a trigger matrix with both should-trigger and *should-not-trigger* prompts. The negative cases (a fresh build, general debugging, a weather question) document where the skill should stay dormant, which is just as important as where it fires. The repo is honest that structural validation "does not prove model behavior by itself," and includes a manual pressure-test prompt for the parts a script can't check.
+
+## Don't enable everything at once
+
+The flip side of all this: every enabled skill spends context whether you use it or not.
+
+Each skill's description sits in the model's context so it can decide when to activate. A handful is fine. A few dozen — plus a pile of MCP servers, each advertising its tools — and you've quietly handed a meaningful slice of the context window to a catalog the model is mostly scrolling past. The cost is real and it's paid on every turn, before you've typed anything.
+
+It also gets harder for the model to choose well. Twelve overlapping skills with fuzzy descriptions means more chances to fire the wrong one, or to fire one when none was needed. More options is not more capability past a point — it's more noise and a higher trigger-error rate.
+
+What I do now:
+
+- **Enable skills per project, not globally.** A homelab repo doesn't need the docs PR generator loaded.
+- **Treat MCP servers the same way.** They're often the bigger context cost, because each one can register many tools. Turn off the ones you're not actively using.
+- **Prune.** If a skill hasn't fired in weeks, disable it. You can always turn it back on.
+- **Write descriptions that don't overlap.** Sharp, distinct "Use when" lines are partly a context-hygiene measure — they keep the model from agonizing over which of three similar skills to pick.
+
+A lean set of well-described skills beats a sprawling library every time. The whole point of progressive disclosure inside a skill is to keep context cheap; enabling forty skills at once throws that away at the layer above.
+
+## Conclusion
+
+To summarize the best practices:
+
+- Write the description as **"Use when…"** and pack in trigger synonyms.
+- Push **deterministic work into scripts** with a stable JSON contract; let the model do only the judgment.
+- Keep **`SKILL.md` small**; move long or volatile detail into `references/` loaded on demand.
+- Spend real effort on **"never" rules**, especially around destructive actions, and treat repo state as ground truth.
+- Define an **explicit output shape**.
+- **Validate the skill's structure in CI** and ship **eval fixtures**, including should-not-trigger cases.
+- **Enable skills and MCP servers sparingly** — every one you leave on is context you spend on every turn.
