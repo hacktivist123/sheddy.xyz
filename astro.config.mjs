@@ -9,6 +9,7 @@ import { remarkReadingTime } from "./remark-reading-time.mjs";
 
 // https://astro.build/config
 export default defineConfig({
+	site: "https://sheddy.xyz",
 	prefetch: {
 		prefetchAll: false,
 		defaultStrategy: "hover",
