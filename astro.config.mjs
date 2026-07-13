@@ -10,7 +10,7 @@ import { remarkReadingTime } from "./remark-reading-time.mjs";
 
 // https://astro.build/config
 export default defineConfig({
-	site: "https://sheddy.xyz",
+	site: "https://www.sheddy.xyz",
 	markdown: {
 		processor: unified({ remarkPlugins: [remarkReadingTime] }),
 	},

@@ -1,5 +1,6 @@
 import { getCollection } from "astro:content";
 import type { APIRoute } from "astro";
+import sharp from "sharp";
 import { getOgThemeColors } from "../../../lib/og-theme";
 
 type Props = {
@@ -104,12 +105,13 @@ export async function getStaticPaths() {
 	}));
 }
 
-export const GET: APIRoute<Props> = ({ props }) => {
+export const GET: APIRoute<Props> = async ({ props }) => {
 	const svg = buildSvg(props.title);
+	const png = await sharp(Buffer.from(svg)).png().toBuffer();
 
-	return new Response(svg, {
+	return new Response(new Uint8Array(png), {
 		headers: {
-			"Content-Type": "image/svg+xml",
+			"Content-Type": "image/png",
 			"Cache-Control": "public, max-age=31536000, immutable",
 		},
 	});
