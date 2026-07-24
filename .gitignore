@@ -23,5 +23,7 @@ pnpm-debug.log*
 # jetbrains setting folder
 .idea/
 
-# local gstack runtime files
+# local agent runtime files
 .gstack/
+.superpowers/
+docs/superpowers/
