@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" role="img" aria-labelledby="title description">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 900" role="img" aria-labelledby="title description">
   <title id="title">Shared GBrain architecture for multiple coding agents</title>
   <desc id="description">Claude, Codex, and Oh My Pi connect over authenticated HTTPS MCP to a home server. Tailscale and Traefik route requests to GBrain, which stores knowledge in PostgreSQL with pgvector and creates local embeddings through Ollama.</desc>
   <defs>
@@ -7,43 +7,48 @@
     </marker>
   </defs>
 
-  <rect width="1200" height="720" rx="28" fill="#faf7ef"/>
-  <text x="70" y="72" fill="#2f2a26" font-family="system-ui, sans-serif" font-size="26" font-weight="700">Coding agents</text>
+  <rect width="1000" height="900" rx="28" fill="#faf7ef"/>
+  <text x="60" y="62" fill="#2f2a26" font-family="system-ui, sans-serif" font-size="34" font-weight="700">Coding agents</text>
 
-  <g font-family="system-ui, sans-serif" font-size="24" font-weight="650" text-anchor="middle">
-    <rect x="70" y="110" width="220" height="78" rx="16" fill="#ffffff" stroke="#d9d1c4" stroke-width="2"/>
-    <text x="180" y="158" fill="#2f2a26">Claude</text>
+  <g font-family="system-ui, sans-serif" font-size="30" font-weight="650" text-anchor="middle">
+    <rect x="60" y="92" width="260" height="86" rx="16" fill="#ffffff" stroke="#d9d1c4" stroke-width="2"/>
+    <text x="190" y="146" fill="#2f2a26">Claude</text>
 
-    <rect x="70" y="218" width="220" height="78" rx="16" fill="#ffffff" stroke="#d9d1c4" stroke-width="2"/>
-    <text x="180" y="266" fill="#2f2a26">Codex</text>
+    <rect x="370" y="92" width="260" height="86" rx="16" fill="#ffffff" stroke="#d9d1c4" stroke-width="2"/>
+    <text x="500" y="146" fill="#2f2a26">Codex</text>
 
-    <rect x="70" y="326" width="220" height="78" rx="16" fill="#ffffff" stroke="#d9d1c4" stroke-width="2"/>
-    <text x="180" y="374" fill="#2f2a26">Oh My Pi</text>
+    <rect x="680" y="92" width="260" height="86" rx="16" fill="#ffffff" stroke="#d9d1c4" stroke-width="2"/>
+    <text x="810" y="146" fill="#2f2a26">Oh My Pi</text>
   </g>
 
-  <path d="M315 257H500" stroke="#356f85" stroke-width="5" marker-end="url(#arrow)"/>
-  <text x="407" y="218" fill="#356f85" font-family="system-ui, sans-serif" font-size="22" font-weight="700" text-anchor="middle">HTTPS MCP</text>
-  <text x="407" y="246" fill="#6d665f" font-family="system-ui, sans-serif" font-size="18" text-anchor="middle">per-client auth</text>
+  <path d="M190 178V214H500M810 178V214H500" fill="none" stroke="#356f85" stroke-width="5"/>
+  <path d="M500 178V250" stroke="#356f85" stroke-width="5" marker-end="url(#arrow)"/>
 
-  <rect x="530" y="48" width="600" height="624" rx="26" fill="#f1eee6" stroke="#356f85" stroke-width="3"/>
-  <text x="570" y="96" fill="#2f2a26" font-family="system-ui, sans-serif" font-size="26" font-weight="700">Home server</text>
+  <rect x="300" y="260" width="400" height="100" rx="18" fill="#e3eef2" stroke="#7da9b8" stroke-width="2"/>
+  <text x="500" y="304" fill="#244c5c" font-family="system-ui, sans-serif" font-size="32" font-weight="700" text-anchor="middle">HTTPS MCP</text>
+  <text x="500" y="338" fill="#4f6973" font-family="system-ui, sans-serif" font-size="24" text-anchor="middle">per-client authentication</text>
 
-  <rect x="610" y="132" width="440" height="88" rx="18" fill="#e3eef2" stroke="#7da9b8" stroke-width="2"/>
-  <text x="830" y="170" fill="#244c5c" font-family="system-ui, sans-serif" font-size="24" font-weight="700" text-anchor="middle">Tailscale + Traefik</text>
-  <text x="830" y="198" fill="#4f6973" font-family="system-ui, sans-serif" font-size="18" text-anchor="middle">TLS, routing, rate limits</text>
+  <path d="M500 360V408" stroke="#356f85" stroke-width="5" marker-end="url(#arrow)"/>
 
-  <path d="M830 220V276" stroke="#356f85" stroke-width="5" marker-end="url(#arrow)"/>
+  <rect x="80" y="420" width="840" height="420" rx="26" fill="#f1eee6" stroke="#356f85" stroke-width="3"/>
+  <text x="120" y="468" fill="#2f2a26" font-family="system-ui, sans-serif" font-size="32" font-weight="700">Home server</text>
 
-  <rect x="650" y="290" width="360" height="100" rx="18" fill="#356f85"/>
-  <text x="830" y="350" fill="#ffffff" font-family="system-ui, sans-serif" font-size="30" font-weight="750" text-anchor="middle">GBrain</text>
+  <rect x="180" y="492" width="640" height="88" rx="18" fill="#e3eef2" stroke="#7da9b8" stroke-width="2"/>
+  <text x="500" y="530" fill="#244c5c" font-family="system-ui, sans-serif" font-size="30" font-weight="700" text-anchor="middle">Tailscale + Traefik</text>
+  <text x="500" y="558" fill="#4f6973" font-family="system-ui, sans-serif" font-size="22" text-anchor="middle">TLS, routing, rate limits</text>
 
-  <path d="M830 390V450M830 450H710M830 450H950M710 450V482M950 450V482" fill="none" stroke="#356f85" stroke-width="5"/>
+  <path d="M500 580V618" stroke="#356f85" stroke-width="5" marker-end="url(#arrow)"/>
 
-  <rect x="580" y="486" width="270" height="126" rx="18" fill="#ffffff" stroke="#d9d1c4" stroke-width="2"/>
-  <text x="715" y="536" fill="#2f2a26" font-family="system-ui, sans-serif" font-size="24" font-weight="700" text-anchor="middle">PostgreSQL</text>
-  <text x="715" y="570" fill="#6d665f" font-family="system-ui, sans-serif" font-size="20" text-anchor="middle">pgvector storage</text>
+  <rect x="300" y="630" width="400" height="90" rx="18" fill="#356f85"/>
+  <text x="500" y="686" fill="#ffffff" font-family="system-ui, sans-serif" font-size="34" font-weight="750" text-anchor="middle">GBrain</text>
 
-  <rect x="870" y="486" width="210" height="126" rx="18" fill="#ffffff" stroke="#d9d1c4" stroke-width="2"/>
-  <text x="975" y="536" fill="#2f2a26" font-family="system-ui, sans-serif" font-size="24" font-weight="700" text-anchor="middle">Ollama</text>
-  <text x="975" y="570" fill="#6d665f" font-family="system-ui, sans-serif" font-size="20" text-anchor="middle">local embeddings</text>
+  <path d="M500 720V748M500 748H290M500 748H710M290 748V768M710 748V768" fill="none" stroke="#356f85" stroke-width="5"/>
+
+  <rect x="140" y="770" width="300" height="96" rx="18" fill="#ffffff" stroke="#d9d1c4" stroke-width="2"/>
+  <text x="290" y="812" fill="#2f2a26" font-family="system-ui, sans-serif" font-size="28" font-weight="700" text-anchor="middle">PostgreSQL</text>
+  <text x="290" y="842" fill="#6d665f" font-family="system-ui, sans-serif" font-size="22" text-anchor="middle">pgvector storage</text>
+
+  <rect x="560" y="770" width="300" height="96" rx="18" fill="#ffffff" stroke="#d9d1c4" stroke-width="2"/>
+  <text x="710" y="812" fill="#2f2a26" font-family="system-ui, sans-serif" font-size="28" font-weight="700" text-anchor="middle">Ollama</text>
+  <text x="710" y="842" fill="#6d665f" font-family="system-ui, sans-serif" font-size="22" text-anchor="middle">local embeddings</text>
 </svg>
