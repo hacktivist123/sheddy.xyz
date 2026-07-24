@@ -1,0 +1,312 @@
+---
+title: "Building a Simple MCP Sandbox for My Poke Assistant"
+draft: false
+date: "2026-07-13"
+summary: "How I built a small Go MCP server for Poke, isolated it with Docker, exposed it through Traefik and Tailscale Funnel, and kept command and file access constrained to my development workspace."
+tags: [Go, MCP, Poke, Docker, Traefik, Tailscale, Security]
+---
+
+I wanted to give my [Poke](https://poke.com) assistant a small set of tools for working in my development directory: run a terminal command, read a file, and write a file.
+
+The important part was not the number of tools. The important part was deciding where those tools were allowed to run.
+
+Giving an assistant a terminal tool directly on a host is a large amount of access. Instead, I put the MCP server in a Docker container, mounted only my `Development` directory into it, and exposed the server through the same Traefik and Tailscale setup I already use for the rest of my homelab.
+
+The final request path looks like this:
+
+```text
+Poke
+  -> Tailscale Funnel
+  -> Traefik on /mcp-sandbox
+  -> Go MCP server on 127.0.0.1:18080
+  -> /workspace inside the container
+  -> ~/Development on the host
+```
+
+This post walks through the setup and the security decisions behind it.
+
+## The MCP server
+
+I wrote the server in Go using the [official MCP Go SDK](https://github.com/modelcontextprotocol/go-sdk). Poke connects to it over the SDK's SSE transport.
+
+The server exposes three tools:
+
+- `run_command` runs a shell command in the workspace
+- `read_file` reads a UTF-8 text file from the workspace
+- `write_file` writes or appends a UTF-8 text file in the workspace
+
+The basic server setup is small:
+
+```go
+server := mcp.NewServer(&mcp.Implementation{
+    Name:    "sandbox-mcp",
+    Version: "1.0.0",
+}, nil)
+
+mcp.AddTool(server, &mcp.Tool{
+    Name:        "run_command",
+    Description: "Run a shell command in the sandbox workspace.",
+}, tools.runCommand)
+
+mcp.AddTool(server, &mcp.Tool{
+    Name:        "read_file",
+    Description: "Read a UTF-8 text file beneath the sandbox workspace.",
+}, tools.readFile)
+
+mcp.AddTool(server, &mcp.Tool{
+    Name:        "write_file",
+    Description: "Write UTF-8 text beneath the sandbox workspace.",
+}, tools.writeFile)
+```
+
+I serve it at `/mcp-sandbox/sse`:
+
+```go
+sseEndpoint := path.Join("/", os.Getenv("MCP_BASE_PATH"), "sse")
+
+sse := mcp.NewSSEHandler(func(request *http.Request) *mcp.Server {
+    if request.URL.Path != sseEndpoint {
+        return nil
+    }
+    return server
+}, nil)
+```
+
+Keeping the base path in the Go server matters. An SSE MCP session starts with a long-running GET request, then the server tells the client where to POST messages for that session. If Traefik strips `/mcp-sandbox`, the server advertises the wrong POST URL and the initial connection works while every message after it fails.
+
+So I forward the prefix unchanged all the way to the server.
+
+## Constraining file access
+
+Checking for `../` in a path is not enough to constrain file access. Symlinks can still point outside the intended directory, and hand-written path checks are easy to get wrong.
+
+Go has a useful API for this: `os.Root`.
+
+```go
+root, err := os.OpenRoot("/workspace")
+if err != nil {
+    return err
+}
+defer root.Close()
+
+data, err := root.ReadFile("project/README.md")
+```
+
+Operations through `os.Root` stay beneath the opened directory. It rejects parent traversal and symlinks that escape the root.
+
+I still validate that paths are relative and point to files beneath the workspace. I also added a 1 MiB limit per file operation and only accept valid UTF-8 for this simple version of the server.
+
+This keeps the tools intentionally narrow. They are for source files and project notes, not arbitrary binary transfer.
+
+## Constraining command execution
+
+The command tool runs `/bin/sh -lc` with its working directory set to `/workspace`.
+
+I added a few limits around it:
+
+- commands default to a 30-second timeout
+- callers cannot request more than 120 seconds
+- stdout and stderr are capped at 256 KiB each
+- the whole process group is killed when a command times out
+- exit code, stderr, timeout, and truncation state are returned as structured output
+
+The process-group detail matters. Killing only the shell can leave child processes running in the container. Starting the command in its own process group lets the timeout stop the entire command tree.
+
+The tool can still do real work. That is the point. The security boundary comes from the container and its mounts, not from pretending that a shell command is harmless.
+
+## Authentication is required
+
+Tailscale Funnel provides a public HTTPS endpoint. Public TLS is useful, but it is not authentication for a server that can run commands and edit files.
+
+The MCP server refuses to start unless `MCP_AUTH_TOKEN` contains at least 32 characters. Every SSE GET and every session POST must include the same bearer token.
+
+The middleware hashes both values before doing a constant-time comparison:
+
+```go
+func bearerAuth(token string, next http.Handler) http.Handler {
+    want := sha256.Sum256([]byte(token))
+
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        provided, ok := strings.CutPrefix(
+            r.Header.Get("Authorization"),
+            "Bearer ",
+        )
+        got := sha256.Sum256([]byte(provided))
+
+        if !ok || subtle.ConstantTimeCompare(got[:], want[:]) != 1 {
+            w.Header().Set("WWW-Authenticate", "Bearer")
+            http.Error(w, "unauthorized", http.StatusUnauthorized)
+            return
+        }
+
+        next.ServeHTTP(w, r)
+    })
+}
+```
+
+I generate a random token, store it in a local `.env` file with mode `0600`, and exclude that file from both Git and the Docker build context.
+
+## The Docker image
+
+The image uses Go 1.26 for the build and runtime stages. I kept the Go toolchain, Git, and a shell in the runtime image because this is a development sandbox and the terminal tool needs to be useful.
+
+```dockerfile
+FROM golang:1.26-alpine AS build
+
+WORKDIR /src
+COPY go.mod go.sum ./
+RUN go mod download
+COPY cmd ./cmd
+COPY internal ./internal
+RUN CGO_ENABLED=0 go build -trimpath \
+    -ldflags="-s -w" \
+    -o /out/sandbox-mcp ./cmd/sandbox-mcp
+
+FROM golang:1.26-alpine
+
+ARG UID=1000
+ARG GID=1000
+
+RUN apk add --no-cache bash ca-certificates git \
+    && addgroup -S -g "${GID}" sandbox \
+    && adduser -S -D -H -u "${UID}" -G sandbox sandbox
+
+COPY --from=build /out/sandbox-mcp /usr/local/bin/sandbox-mcp
+
+ENV MCP_ADDR=:8000 \
+    MCP_BASE_PATH=/mcp-sandbox \
+    MCP_WORKSPACE=/workspace \
+    HOME=/tmp/home \
+    GOCACHE=/tmp/go-cache \
+    GOPATH=/tmp/go
+
+WORKDIR /workspace
+USER sandbox:sandbox
+ENTRYPOINT ["/usr/local/bin/sandbox-mcp"]
+```
+
+I build the image with my host UID and GID. That keeps files created through the MCP server owned by my normal host user instead of root.
+
+```sh
+docker build \
+  --build-arg UID="$(id -u)" \
+  --build-arg GID="$(id -g)" \
+  -t sandbox-mcp:local .
+```
+
+## Locking down the container
+
+Most of the isolation is in the runtime flags:
+
+```sh
+docker run -d \
+  --name sandbox-mcp \
+  --restart unless-stopped \
+  --network sandbox-mcp-net \
+  --env-file .env \
+  --read-only \
+  --tmpfs /tmp:rw,noexec,nosuid,nodev,size=256m,uid=$(id -u),gid=$(id -g) \
+  --cap-drop ALL \
+  --pids-limit 128 \
+  --memory 1g \
+  --cpus 2 \
+  -v "$HOME/Development:/workspace:rw" \
+  -p 127.0.0.1:18080:8000 \
+  sandbox-mcp:local
+```
+
+The resulting container has:
+
+- a non-root user
+- no Linux capabilities
+- a read-only root filesystem
+- a small temporary writable filesystem
+- bounded processes, memory, and CPU
+- no direct LAN port because Docker publishes only to host loopback
+- only one host directory mounted, at `/workspace`
+
+I also use a dedicated Docker bridge with inter-container communication and outbound masquerading disabled:
+
+```sh
+docker network create \
+  --opt com.docker.network.bridge.enable_ip_masquerade=false \
+  --opt com.docker.network.bridge.enable_icc=false \
+  sandbox-mcp-net
+```
+
+This is still not a magic sandbox. The assistant can modify anything under the mounted `Development` directory because that is the capability I chose to give it. I do not mount the Docker socket, my home directory, SSH keys, or the host root filesystem.
+
+## Routing it through Traefik
+
+My homelab uses one Tailscale hostname with Traefik routing services by path. The MCP server follows the same pattern.
+
+```yaml
+mcp-sandbox:
+  rule: "Host(`your-node.your-tailnet.ts.net`) && PathPrefix(`/mcp-sandbox`)"
+  entryPoints:
+    - websecure
+  service: mcp-sandbox-service
+  tls:
+    certResolver: tailscale
+
+mcp-sandbox-service:
+  loadBalancer:
+    servers:
+      - url: "http://127.0.0.1:18080"
+```
+
+Traefik runs with host networking in my setup, so its `127.0.0.1` is the host loopback where Docker published the MCP port.
+
+I initially pointed Funnel directly at port `18080`. That made the MCP server the backend for every path on the hostname and bypassed my existing Traefik routes. The correct setup was to keep Traefik as the single entry point and point Funnel at Traefik instead:
+
+```sh
+tailscale funnel --bg --yes https+insecure://127.0.0.1:443
+```
+
+Funnel terminates public HTTPS, then proxies to Traefik's local HTTPS listener. Traefik continues routing the homepage and all existing services, while `/mcp-sandbox` goes to the MCP container.
+
+The final MCP URL is:
+
+```text
+https://your-node.your-tailnet.ts.net/mcp-sandbox/sse
+```
+
+## Connecting the server to Poke
+
+Once the endpoint works, adding it to Poke is the easy part.
+
+I add a [new Poke integration](https://poke.com/integrations/new) and provide three values:
+
+1. A name for the integration, such as `Development Sandbox`
+2. The MCP server URL: `https://your-node.your-tailnet.ts.net/mcp-sandbox/sse`
+3. The auth token from `MCP_AUTH_TOKEN`
+
+After saving the integration, Poke connects to the SSE endpoint and discovers the three tools exposed by the server.
+
+I verified the setup at each boundary instead of testing only from Poke:
+
+- the container health endpoint returns `200`
+- the MCP endpoint returns `401` without a token
+- an authenticated request receives the SSE session endpoint
+- the session endpoint retains the `/mcp-sandbox` prefix
+- an MCP client can list and call all three tools
+- the same checks work through the public Funnel address
+
+## The security model in plain terms
+
+The setup is intentionally small enough to reason about:
+
+- Poke needs a long random token to connect
+- public traffic uses HTTPS through Tailscale Funnel
+- Traefik remains the only entry point for the hostname
+- Docker exposes the MCP port only on host loopback
+- the server runs as a non-root user with no capabilities
+- the container root filesystem is read-only
+- resource and output limits reduce runaway commands
+- file APIs cannot traverse outside `/workspace`
+- the only writable host mount is my development directory
+- the Docker socket and host credentials are not present
+
+The biggest remaining permission is also the most obvious one: the MCP server can run commands and edit code in `Development`. That is useful, but it is not low risk. I use a dedicated integration, keep the token private, and disable the integration when I do not need it.
+
+For me, that is the practical value of this design. Poke gets useful development tools, while the boundary around those tools stays explicit and testable.

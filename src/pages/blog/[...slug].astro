@@ -19,7 +19,7 @@ interface Props {
 
 const { post } = Astro.props;
 const { Content, remarkPluginFrontmatter } = await render(post);
-const ogImagePath = `/og/blog/${post.id.split("/").map(encodeURIComponent).join("/")}.svg`;
+const ogImagePath = `/og/blog/${post.id.split("/").map(encodeURIComponent).join("/")}.png`;
 const minutesRead = remarkPluginFrontmatter.minutesRead;
 
 function formatDate(date: Date): string {
