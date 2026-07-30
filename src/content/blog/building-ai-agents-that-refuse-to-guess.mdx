@@ -1,0 +1,298 @@
+---
+title: 'Building AI Agents That Refuse to Guess'
+draft: false
+date: '2026-07-30'
+summary: "An agent that can take action is not automatically safe to trust. These are the patterns I use to make coding agents inspect first, ask for intent, gate side effects, and stop when they lack confirmation."
+tags: ['AI', 'Developer Experience']
+---
+
+I recently worked on an agent workflow that could inspect a codebase, call an external API, modify application files, run tests, and write a report.
+
+On paper, it worked. The agent had the tools and knowledge it needed to complete the task.
+
+It also had one bad instruction: if the developer had not named a specific change, find a small and safe improvement to make.
+
+The model followed that instruction well. It found plausible user interface changes, explained why they were low risk, and produced working implementations. The problem was that nobody had asked for those changes.
+
+The agent knew how to act, but it did not know what the developer wanted.
+
+That distinction changed how I thought about the workflow. Reliability was not only about making the agent produce correct code. The agent also needed to recognize missing intent, ask for it at the right moment, and refuse to continue when it did not receive a clear answer.
+
+This post covers the patterns I now use when building agents that can make changes to real systems.
+
+## Capability is not intent
+
+Giving an agent access to a repository tells it what it *can* change. It does not tell the agent what it *should* change.
+
+A model can inspect an application and find dozens of reasonable improvements:
+
+- Add an empty state.
+- Change button copy.
+- Introduce a progress summary.
+- Rearrange navigation.
+- Add loading feedback.
+
+Each suggestion may be technically sound and easy to reverse. None of them represents the developer's intent unless the developer has chosen it.
+
+This becomes more important when the agent can call external APIs, change configuration, or affect what users see. A plausible guess can still create unwanted product behavior, leave unused resources behind, or make a code review harder to understand.
+
+The first rule I took from this was simple:
+
+> Do not convert missing product intent into permission to invent work.
+
+When intent is missing, the agent should gather evidence, present a recommendation, and ask.
+
+## Inspect before asking
+
+Asking too early is also a poor experience.
+
+An agent that begins with "What should I change?" gives the developer all the work. The useful context is already in the repository, so the agent should inspect it before interrupting anyone.
+
+For a coding workflow, that inspection can include:
+
+- The package manifest and framework.
+- The current Git diff.
+- Recently modified application files.
+- Existing SDKs and configuration names.
+- Nearby tests.
+- Existing patterns for similar changes.
+
+The goal is not to choose on the developer's behalf. The goal is to turn a vague question into a concrete decision.
+
+Compare these two prompts:
+
+> What change do you want to make?
+
+And:
+
+> I found a new completion summary in the current working tree. I can place it behind the existing release mechanism while preserving the current page as the fallback. Should I continue with this change, choose another candidate, or stop?
+
+The second question is easier to answer because the agent has already done the mechanical work. It gives the developer a recommendation without pretending the recommendation is approval.
+
+This creates a useful sequence:
+
+![An AI agent inspects a codebase, understands the project, identifies possible changes, recommends one, and asks the developer for a decision.](/static/images/agent-inspect-before-asking.png)
+
+The developer stays in control without having to explain the entire codebase to the agent.
+
+## Prefer developer-owned changes
+
+The strongest candidate is usually a change the developer has already started.
+
+A current Git diff carries more intent than an untouched file. A partially implemented component, a new route, or a changed configuration entry gives the agent evidence that someone is already working in that area.
+
+This does not mean every uncommitted change is safe to use. The agent still needs to check:
+
+- Whether the change is relevant to the requested workflow.
+- Whether it affects authentication, billing, permissions, or destructive operations.
+- Whether the existing behavior can remain a safe fallback.
+- Whether the change is small enough to verify properly.
+
+If the working tree contains several reasonable candidates, the agent can present them as choices. If it contains none, the agent should ask the developer to describe the intended behavior.
+
+Generating a demonstration feature can still be useful, but it should be an explicit fallback that the developer confirms. It should not be the default response to missing intent.
+
+## Make the proposal structured
+
+An approval question should contain enough information for the developer to understand what will happen next.
+
+I now treat the proposal as a small contract. It should state:
+
+- **Behavior:** What changes for the user?
+- **Control:** What happens when the new behavior is unavailable or disabled?
+- **Changed path:** Where will the agent modify the application?
+- **External action:** What will the agent create or update outside the repository?
+- **Initial state:** What safe value or state will the external system start with?
+- **Verification:** How will the agent prove both paths work?
+
+A structured proposal makes hidden assumptions visible. It also gives the final report a stable set of claims to verify.
+
+The developer should be able to approve the proposal, choose another inspected candidate, describe a different change, or cancel. These options are much clearer than an open-ended confirmation such as "Continue?"
+
+## Treat approval as a state transition
+
+Approval should change what the agent is allowed to do.
+
+Before approval, the agent can:
+
+- Read source files.
+- Inspect manifests and diffs.
+- Check whether configuration names exist.
+- Identify candidate changes.
+- Build a proposal.
+
+After approval, the agent can:
+
+- Call write APIs.
+- Edit application source.
+- Create configuration.
+- Run the implementation and verification workflow.
+
+This is more reliable than asking for confirmation as a courtesy while leaving all tools available. The workflow should make the boundary explicit:
+
+```typescript
+const proposal = await inspectProject()
+const decision = await requestApproval(proposal)
+
+if (!decision.confirmed) {
+  return abort('A confirmed change is required before writes can begin.')
+}
+
+await executeApprovedChange(decision)
+```
+
+The important behavior is the abort. If the approval interface is unavailable, cancelled, or returns an empty answer, the agent must not interpret that as permission.
+
+No answer means no writes.
+
+## Plan the complete workflow before starting it
+
+Another failure mode appeared in the task list.
+
+The agent created the first task, started it, completed it, and then created the next task. Each individual action was valid, but the developer could not see the full plan or understand how much work remained.
+
+The fix was to make planning a distinct phase:
+
+1. Read the workflow.
+2. Create every initial task in order.
+3. Show the complete plan.
+4. Start the first task.
+5. Update tasks as evidence is collected.
+
+This matters because a visible plan is part of the approval surface. It lets the developer spot a missing build, an unexpected write, or a weak verification step before the agent reaches it.
+
+It also prevents the agent from quietly redefining the workflow while it runs.
+
+## Put each rule where it can be enforced
+
+Prompts are useful, but prompts should not carry every responsibility.
+
+I found it helpful to split the workflow into three layers:
+
+- **Orchestration owns order and permission.** It decides when the agent can plan, ask, write, verify, and stop.
+- **Domain guidance owns implementation knowledge.** It explains framework patterns, safe fallbacks, and the checks that matter for that type of change.
+- **Tools own deterministic constraints.** They validate API responses, check configuration names without exposing values, and reject invalid inputs.
+
+This separation keeps changing technical guidance out of the orchestration layer while preserving hard safety boundaries.
+
+For example, a framework-specific implementation pattern may change as its SDK evolves. That belongs in domain guidance that can be updated independently. The requirement to receive approval before a write is stable workflow behavior, so it belongs in orchestration. A rule such as "the rollout must be between 0 and 100" belongs in typed tool validation.
+
+Put a rule in the narrowest layer that can enforce it.
+
+## Prefer prevention over recovery
+
+Agents are good at recovering from some failures, but recovery is the wrong first strategy for consequential actions.
+
+Consider an API whose default creates a resource in a broadly enabled state. A weak instruction might say:
+
+> Prefer creating the resource in a disabled state.
+
+The word "prefer" leaves room for the API default to win.
+
+A stronger workflow says:
+
+1. Send the safe initial state explicitly.
+2. Read the resource back.
+3. Confirm the returned state matches the request.
+4. Correct it before making application changes.
+5. Stop if it cannot be corrected safely.
+
+The same pattern applies to file changes:
+
+- Preserve the existing experience as the fallback.
+- Avoid critical paths unless the developer explicitly selects one.
+- Do not read secret values when checking for configuration.
+- Do not claim verification when a required environment is unavailable.
+
+These rules reduce the amount of cleanup the agent may need to perform after a bad assumption.
+
+## Abort is a valid product outcome
+
+Many agent workflows treat aborting as an error to hide. I think this is backwards.
+
+An agent should stop when:
+
+- The required integration is missing.
+- It cannot load the knowledge needed for the task.
+- It lacks permission to perform an external action.
+- The developer has not confirmed the proposed change.
+- The returned API state is unsafe.
+- The implementation does not match the detected framework.
+
+Each stop should explain what happened and what the developer can do next. A generic "Something went wrong" message wastes the context the agent already gathered.
+
+A useful abort response contains:
+
+- A short reason.
+- The action that was prevented.
+- The next step.
+- A relevant documentation link when one exists.
+
+Stopping before an unsafe write is successful agent behavior.
+
+## Completion needs evidence
+
+Agents are very good at producing signs of progress:
+
+- A file changed.
+- A build passed.
+- An API returned a response.
+- An event entered a local queue.
+- A report was written.
+
+None of these proves that the complete workflow works.
+
+The acceptance criteria should match the real user outcome. For an integration that changes application behavior, that may require:
+
+1. Run the existing experience.
+2. Run the new experience.
+3. Confirm that the external system received the expected signal.
+4. Restore the safe initial state.
+5. Record anything blocked or not run.
+
+The report should distinguish `passed`, `failed`, `blocked`, and `not run`. Missing evidence should never be rewritten as success.
+
+This is another place where refusal matters. If the agent cannot start the application, it should say browser verification was not run. It can still report what it changed, but it should not claim the feature is ready based only on a successful build.
+
+## Test decisions, not duplicated prose
+
+Prompt-heavy workflows tempt us to write tests that assert every sentence. Those tests become copies of the prompt and make harmless wording changes expensive.
+
+The useful tests protect decisions and boundaries:
+
+- The workflow loads its required knowledge before planning.
+- Every initial task exists before execution begins.
+- No write can happen before approval.
+- Missing approval maps to an actionable abort state.
+- Unsafe API responses stop the workflow.
+- Completion links to the correct project and report.
+
+Some exact strings are load-bearing, especially when one layer emits a signal that another layer parses. Those contracts should be tested on both sides.
+
+Everything else should be tested through behavior, fixtures, and end-to-end runs rather than equality checks against paragraphs of prompt text.
+
+## A practical blueprint
+
+The final pattern looks like this:
+
+![A process map showing an automation workflow inspecting the environment, waiting at an explicit approval boundary, acting with safe defaults, and reporting evidence.](/static/images/safe-agent-workflow-map.png)
+
+This sequence is slower than telling an agent to "make a useful change." It is also much easier to understand, review, and trust.
+
+## Final thoughts
+
+The most capable agent is not the one that takes the most actions. It is the one that understands which actions have been authorized, which claims have evidence, and when it should stop.
+
+The patterns I keep coming back to are:
+
+- Inspect before asking.
+- Prefer work the developer already owns.
+- Turn recommendations into structured decisions.
+- Gate writes on explicit approval.
+- Create the complete plan before execution.
+- Put deterministic constraints in tools.
+- Start external resources in a safe state and read them back.
+- Treat aborts as useful outcomes.
+- Define completion using real evidence.
+
+An agent that refuses to guess may appear less autonomous. In practice, that restraint is what makes meaningful autonomy possible.
