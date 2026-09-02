@@ -1,74 +1,109 @@
 ---
+import SectionHeading from "./SectionHeading.astro";
+
+interface Props {
+	index?: string;
+}
+
+const { index } = Astro.props;
+
 const projects = [
 	{
 		title: "Kontinuo",
 		description:
 			"A local-first MCP server and CLI for verifiable handoffs between AI coding agents.",
 		href: "https://kontinuo.dev",
+		meta: "MCP · TypeScript",
 	},
 	{
 		title: "PullBase",
 		description:
-			"Gitops-based Configuration Management Platform built with Go.",
+			"GitOps-based configuration management platform built with Go.",
 		href: "https://pullbase.io",
+		meta: "Go · GitOps",
 	},
 	{
 		title: "GoIgnore",
 		description:
 			"A lightweight CLI tool for generating .gitignore files instantly.",
 		href: "https://github.com/hacktivist123/goignore",
+		meta: "Go · CLI",
 	},
 	{
 		title: "Kpeek",
 		description:
 			"A comprehensive Kubernetes troubleshooting tool and cluster explorer.",
 		href: "https://github.com/hacktivist123/kpeek",
+		meta: "Go · Kubernetes",
 	},
 	{
 		title: "DevOps Learning Plan",
 		description:
-			"A structured roadmap and resources for mastering DevOps and Cloud Native technologies.",
+			"A structured roadmap and resources for mastering DevOps and cloud native technologies.",
 		href: "https://github.com/hacktivist123/DevOps-Learning-Plan",
+		meta: "Curriculum",
 	},
 ];
 ---
 
-<section class="py-10 sm:py-16">
-    <h2 class="mb-8 text-xl font-medium tracking-tight">Selected Projects</h2>
-    <div class="grid gap-4 sm:grid-cols-2">
-        {
-            projects.map((project) => (
-                <a
-                    href={project.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="group relative flex flex-col gap-3 rounded-2xl border border-border/40 bg-transparent p-6 transition-colors hover:border-border hover:bg-muted/20"
-                >
-                    <h3 class="flex items-center justify-between font-medium text-foreground">
-                        <span>{project.title}</span>
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            class="shrink-0 text-muted-foreground/40 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-foreground"
-                            aria-hidden="true"
-                            focusable="false"
-                        >
-                            <path d="M7 7h10v10"></path>
-                            <path d="M7 17 17 7"></path>
-                        </svg>
-                    </h3>
-                    <p class="text-sm leading-relaxed text-muted-foreground">
-                        {project.description}
-                    </p>
-                </a>
-            ))
-        }
-    </div>
+<section class="py-12 sm:py-16">
+	<SectionHeading
+		index={index}
+		title="Projects"
+		dek="Tools I build and maintain."
+	/>
+
+	<ul class="mt-6 flex flex-col">
+		{
+			projects.map((project, i) => (
+				<li
+					class="rule first:border-t-0"
+					data-reveal
+					style={`--reveal-delay: ${Math.min(i, 8) * 40}ms`}
+				>
+					<a
+						href={project.href}
+						target="_blank"
+						rel="noopener noreferrer"
+						class="row group grid gap-x-8 gap-y-1.5 py-6 sm:grid-cols-[7.5rem_1fr_auto]"
+					>
+						<span
+							class="numeral pt-1.5 transition-[color,transform] duration-[220ms] group-hover:translate-x-0.5 group-hover:text-foreground"
+							style="transition-timing-function: var(--ease-ui)"
+						>
+							{project.meta}
+						</span>
+
+						<div class="max-w-[58ch]">
+							<h3 class="font-heading text-foreground">
+								<span class="link-draw">{project.title}</span>
+							</h3>
+							<p class="mt-2 text-[0.95rem] leading-relaxed text-muted-foreground">
+								{project.description}
+							</p>
+						</div>
+
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="16"
+							height="16"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							class="mt-2 hidden shrink-0 text-muted-foreground/40 transition-[transform,color] duration-[220ms] group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-foreground sm:block"
+							style="transition-timing-function: var(--ease-ui)"
+							aria-hidden="true"
+							focusable="false"
+						>
+							<path d="M7 7h10v10" />
+							<path d="M7 17 17 7" />
+						</svg>
+					</a>
+				</li>
+			))
+		}
+	</ul>
 </section>

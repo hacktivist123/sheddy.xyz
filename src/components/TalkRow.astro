@@ -1,0 +1,50 @@
+---
+import { kindLabel, runtimeLabel, type Talk, watchUrl } from "../data/talks";
+
+interface Props {
+	talk: Talk;
+}
+
+const { talk } = Astro.props;
+
+function formatDate(iso: string): string {
+	return new Date(iso).toLocaleDateString("en-GB", {
+		year: "numeric",
+		month: "short",
+	});
+}
+---
+
+<a
+	href={watchUrl(talk)}
+	target="_blank"
+	rel="noopener noreferrer"
+	class="row group grid gap-x-8 gap-y-1.5 py-6 sm:grid-cols-[7.5rem_1fr_auto]"
+>
+	<div
+		class="numeral pt-1.5 transition-[color,transform] duration-[220ms] group-hover:translate-x-0.5 group-hover:text-foreground"
+		style="transition-timing-function: var(--ease-ui)"
+	>
+		{formatDate(talk.date)}
+	</div>
+
+	<div class="max-w-[58ch]">
+		<h3 class="font-heading text-foreground">
+			<span class="link-draw">{talk.title}</span>
+		</h3>
+		<p class="mt-1 text-sm text-muted-foreground">
+			{talk.event}
+			{talk.startAt && (
+				<span class="text-muted-foreground/70"> · jumps to this segment</span>
+			)}
+		</p>
+		<p class="mt-2 text-[0.95rem] leading-relaxed text-muted-foreground">
+			{talk.dek}
+		</p>
+	</div>
+
+	<div class="numeral pt-1.5 sm:text-right">
+		<span class="hidden sm:inline">{kindLabel[talk.kind]}</span>
+		<span class="sm:mt-1 sm:block">{runtimeLabel(talk)}</span>
+	</div>
+</a>

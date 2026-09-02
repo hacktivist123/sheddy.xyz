@@ -18,11 +18,12 @@ const tagCounts = tags.reduce(
 ---
 
 <Layout title="Tags - Shedrack Akintayo">
-  <div class="container mx-auto max-w-3xl px-4 py-16">
-    <header class="py-12">
-      <h1 class="text-4xl font-bold tracking-tight">Tags</h1>
-      <p class="mt-4 text-muted-foreground">
-        Browse all topics and categories.
+  <div class="mx-auto px-4 py-16 sm:py-24" style="max-width: var(--w-page)">
+    <header class="mb-12">
+      <p class="meta">Index</p>
+      <h1 class="mt-4 font-heading">Tags</h1>
+      <p class="mt-6 text-[length:var(--step-1)] leading-relaxed text-muted-foreground" style="max-width: 46ch">
+        Every topic covered across {allPosts.length} posts.
       </p>
     </header>
 

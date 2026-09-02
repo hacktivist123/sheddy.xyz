@@ -11,9 +11,9 @@ function isThemePreference(value: string | null): value is ThemePreference {
 export function readThemePreference(): ThemePreference {
 	try {
 		const stored = localStorage.getItem(THEME_STORAGE_KEY);
-		return isThemePreference(stored) ? stored : "system";
+		return isThemePreference(stored) ? stored : "dark";
 	} catch {
-		return "system";
+		return "dark";
 	}
 }
 

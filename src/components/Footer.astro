@@ -3,37 +3,80 @@ import { TimeDisplay } from "./TimeDisplay";
 
 const currentYear = new Date().getFullYear();
 
-const socialLinks = [
-	{ href: "https://github.com/hacktivist123", label: "GitHub" },
-	{ href: "https://twitter.com/coder_blvck", label: "Twitter" },
-	{ href: "https://linkedin.com/in/shedrackakintayo", label: "LinkedIn" },
+const sections = [
+	{
+		heading: "Sections",
+		links: [
+			{ href: "/blog", label: "Writing" },
+			{ href: "/talks", label: "Talks & Videos" },
+			{ href: "/bookmarks", label: "Bookmarks" },
+			{ href: "/uses", label: "Uses" },
+			{ href: "/about", label: "About" },
+		],
+	},
+	{
+		heading: "Elsewhere",
+		links: [
+			{ href: "https://github.com/hacktivist123", label: "GitHub", external: true },
+			{ href: "https://twitter.com/coder_blvck", label: "Twitter", external: true },
+			{
+				href: "https://linkedin.com/in/shedrackakintayo",
+				label: "LinkedIn",
+				external: true,
+			},
+			{ href: "/feed.xml", label: "RSS" },
+		],
+	},
 ];
 ---
 
-<footer class="border-t border-border/40 py-12 md:py-16">
-  <div class="container mx-auto max-w-4xl px-4">
-    <div class="flex flex-col items-center justify-between gap-6 sm:flex-row sm:gap-4">
-      <div class="flex flex-col items-center gap-2 sm:flex-row sm:gap-4">
-        <p class="text-sm text-muted-foreground">
-          © {currentYear} Shedrack Akintayo
-        </p>
-        <span class="hidden text-muted-foreground/50 sm:inline">·</span>
-        <div class="text-sm text-muted-foreground/80">
-          <TimeDisplay client:load />
-        </div>
-      </div>
-      <nav class="flex gap-5 sm:gap-6">
-        {socialLinks.map(link => (
-          <a 
-            href={link.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="text-sm text-muted-foreground transition-colors hover:text-foreground hover:underline underline-offset-4"
-          >
-            {link.label}
-          </a>
-        ))}
-      </nav>
-    </div>
-  </div>
+<footer class="mt-24 border-t border-[color:var(--rule)] py-14">
+	<div class="mx-auto px-4" style="max-width: var(--w-wide)">
+		<div class="grid gap-10 sm:grid-cols-[1fr_auto_auto] sm:gap-16">
+			<!-- Colophon -->
+			<div class="max-w-[42ch]">
+				<p class="meta">Colophon</p>
+				<p class="mt-3 text-sm leading-relaxed text-muted-foreground">
+					Set in Shippori Mincho and Zen Kaku Gothic New. Built with Astro,
+					written by hand, and deployed from a laptop in Manchester.
+				</p>
+			</div>
+
+			{
+				sections.map((section) => (
+					<nav>
+						<p class="meta">{section.heading}</p>
+						<ul class="mt-3 flex flex-col gap-2">
+							{section.links.map((link) => (
+								<li>
+									<a
+										href={link.href}
+										target={"external" in link && link.external ? "_blank" : undefined}
+										rel={
+											"external" in link && link.external
+												? "noopener noreferrer"
+												: undefined
+										}
+										class="text-sm text-muted-foreground transition-colors duration-[160ms] hover:text-foreground"
+										style="transition-timing-function: var(--ease-ui)"
+									>
+										<span class="link-draw">{link.label}</span>
+									</a>
+								</li>
+							))}
+						</ul>
+					</nav>
+				))
+			}
+		</div>
+
+		<div
+			class="rule mt-12 flex flex-col gap-2 pt-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between"
+		>
+			<p>&copy; {currentYear} Shedrack Akintayo</p>
+			<div class="text-sm text-muted-foreground/80">
+				<TimeDisplay client:load />
+			</div>
+		</div>
+	</div>
 </footer>

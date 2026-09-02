@@ -1,43 +1,69 @@
 ---
+/**
+ * Editorial index: each row is a title + dek couplet against a fixed mono date
+ * rail. The hairline under a row wipes in on hover; the date rail nudges and
+ * gains contrast with it.
+ */
 interface Post {
 	id: string;
 	data: {
 		title: string;
 		date: Date;
+		summary?: string;
 	};
 }
 
 interface Props {
 	posts: Post[];
 	limit?: number;
+	/** Stagger the scroll-entrance of each row */
+	reveal?: boolean;
 }
 
-const { posts, limit } = Astro.props;
+const { posts, limit, reveal = true } = Astro.props;
 const displayPosts = limit ? posts.slice(0, limit) : posts;
 
 function formatDate(date: Date): string {
-	return date.toLocaleDateString("en-US", {
+	return date.toLocaleDateString("en-GB", {
 		year: "numeric",
 		month: "short",
-		day: "numeric",
+		day: "2-digit",
 	});
 }
 ---
 
-<ul class="flex flex-col gap-8">
-  {displayPosts.map(post => (
-    <li>
-      <a 
-        href={`/blog/${post.id}`}
-        class="group flex flex-col gap-2 sm:flex-row sm:items-baseline sm:gap-8"
-      >
-        <time class="shrink-0 tabular-nums text-sm text-muted-foreground transition-colors group-hover:text-foreground sm:w-32">
-          {formatDate(post.data.date)}
-        </time>
-        <span class="font-heading text-lg font-medium leading-snug tracking-[-0.01em] text-foreground decoration-muted-foreground/30 underline-offset-4 transition-colors group-hover:underline group-hover:decoration-foreground">
-          {post.data.title}
-        </span>
-      </a>
-    </li>
-  ))}
+<ul class="flex flex-col">
+	{
+		displayPosts.map((post, i) => (
+			<li
+				class="rule first:border-t-0"
+				data-reveal={reveal ? "" : undefined}
+				style={reveal ? `--reveal-delay: ${Math.min(i, 8) * 40}ms` : undefined}
+			>
+				<a
+					href={`/blog/${post.id}`}
+					class="row group grid gap-x-8 gap-y-1.5 py-6 sm:grid-cols-[7.5rem_1fr]"
+				>
+					<time
+						datetime={post.data.date.toISOString()}
+						class="numeral pt-1.5 transition-[color,transform] duration-[220ms] group-hover:translate-x-0.5 group-hover:text-foreground"
+						style="transition-timing-function: var(--ease-ui)"
+					>
+						{formatDate(post.data.date)}
+					</time>
+
+					<div class="max-w-[58ch]">
+						<h3 class="font-heading text-foreground">
+							<span class="link-draw">{post.data.title}</span>
+						</h3>
+						{post.data.summary && (
+							<p class="mt-2 text-[0.95rem] leading-relaxed text-muted-foreground">
+								{post.data.summary}
+							</p>
+						)}
+					</div>
+				</a>
+			</li>
+		))
+	}
 </ul>

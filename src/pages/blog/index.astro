@@ -2,6 +2,7 @@
 import type { CollectionEntry } from "astro:content";
 import { getCollection } from "astro:content";
 import PostList from "../../components/PostList.astro";
+import SectionHeading from "../../components/SectionHeading.astro";
 import Layout from "../../layouts/Layout.astro";
 
 const posts: CollectionEntry<"blog">[] = await getCollection(
@@ -11,19 +12,73 @@ const posts: CollectionEntry<"blog">[] = await getCollection(
 const sortedPosts = posts.sort(
 	(a, b) => b.data.date.getTime() - a.data.date.getTime(),
 );
+
+const [lead, ...rest] = sortedPosts;
+
+const years = sortedPosts.map((p) => p.data.date.getFullYear());
+const span = `${Math.min(...years)}–${Math.max(...years)}`;
 ---
 
-<Layout title="Blog - Shedrack Akintayo">
-  <div class="container mx-auto max-w-4xl px-4 py-16">
-    <section class="py-12">
-      <h1 class="text-5xl font-semibold tracking-tight sm:text-7xl"><span class="text-primary">/</span>Blog</h1>
-      <p class="mt-5 max-w-[62ch] text-lg leading-relaxed text-muted-foreground">
-        Thoughts on AI, DevOps, Cloud and Technical Writing.
-      </p>
-    </section>
+<Layout
+	title="Writing - Shedrack Akintayo"
+	description="Essays and notes on AI, DevOps, cloud native systems and technical writing by Shedrack Akintayo."
+>
+	<div class="mx-auto px-4 py-16 sm:py-24" style="max-width: var(--w-wide)">
+		<!-- Masthead -->
+		<header class="mb-16">
+			<p class="meta">Section 01</p>
+			<h1 class="mt-4 font-heading">Writing</h1>
+			<p
+				class="mt-6 text-[length:var(--step-1)] leading-relaxed text-muted-foreground"
+				style="max-width: 46ch"
+			>
+				Essays and notes on AI, DevOps, cloud native systems, and the craft of
+				technical writing.
+			</p>
+			<p class="meta mt-8">{sortedPosts.length} posts &middot; {span}</p>
+		</header>
 
-    <section class="py-8">
-      <PostList posts={sortedPosts} />
-    </section>
-  </div>
+		<!-- Lead article -->
+		{
+			lead && (
+				<section class="rule mb-14 pt-8" data-reveal>
+					<p class="meta">Latest</p>
+					<a href={`/blog/${lead.id}`} class="group mt-4 block max-w-[46rem]">
+						<h2 class="font-heading text-[length:var(--step-3)] text-foreground">
+							<span class="link-draw">{lead.data.title}</span>
+						</h2>
+						{lead.data.summary && (
+							<p class="mt-4 text-[length:var(--step-0)] leading-relaxed text-muted-foreground">
+								{lead.data.summary}
+							</p>
+						)}
+						<span class="numeral mt-4 inline-flex items-center gap-2">
+							<time datetime={lead.data.date.toISOString()}>
+								{lead.data.date.toLocaleDateString("en-GB", {
+									year: "numeric",
+									month: "short",
+									day: "2-digit",
+								})}
+							</time>
+							<span
+								class="inline-block transition-transform duration-[220ms] group-hover:translate-x-1"
+								style="transition-timing-function: var(--ease-ui)"
+								aria-hidden="true"
+							>
+								&rarr;
+							</span>
+						</span>
+					</a>
+				</section>
+			)
+		}
+
+		<!-- Archive -->
+		<section>
+			<SectionHeading title="Archive" dek="Everything, most recent first." />
+			<div class="mt-6">
+				<PostList posts={rest} />
+			</div>
+		</section>
+	</div>
 </Layout>

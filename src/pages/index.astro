@@ -4,7 +4,10 @@ import { getCollection } from "astro:content";
 import ClientList from "../components/ClientList.astro";
 import PostList from "../components/PostList.astro";
 import ProjectList from "../components/ProjectList.astro";
+import SectionHeading from "../components/SectionHeading.astro";
+import TalkCard from "../components/TalkCard.astro";
 import Layout from "../layouts/Layout.astro";
+import { talksByDate } from "../data/talks";
 
 const posts: CollectionEntry<"blog">[] = await getCollection(
 	"blog",
@@ -13,51 +16,111 @@ const posts: CollectionEntry<"blog">[] = await getCollection(
 const sortedPosts = posts.sort(
 	(a, b) => b.data.date.getTime() - a.data.date.getTime(),
 );
+
+const featuredTalks = talksByDate.filter((t) => t.featured).slice(0, 3);
 ---
 
 <Layout title="Shedrack Akintayo">
-    <div class="container mx-auto max-w-4xl px-4 py-12 sm:py-20">
-        <!-- Hero -->
-        <section class="py-10 sm:py-16">
-            <h1 class="text-4xl font-medium tracking-tight text-foreground sm:text-5xl">
-                Shedrack Akintayo
-            </h1>
-            <p class="mt-4 text-lg text-muted-foreground">
-                Technical Writer · DevRel Engineer · DevOps Solutions Architect
-            </p>
-            <div class="mt-8 max-w-[60ch] space-y-6 text-base leading-relaxed text-muted-foreground sm:text-lg">
-                <p>
-                    I build scalable cloud systems, write technical content that
-                    developers actually read, and design context infrastructure
-                    for AI coding agents. With <a href="https://kontinuo.dev" target={"_blank"} style="text-decoration:underline;">Kontinuo</a>, I built a local-first MCP
-                    continuity layer that carries evidence-backed work across tools
-                    and sessions.
-                </p>
-                <p>
-                    Off the keyboard, I'm a dedicated athlete, cross-training in
-                    strength, Muay Thai, running, and football. I approach sports
-                    with the same discipline I bring to engineering.
-                </p>
-            </div>
-        </section>
+	<div class="mx-auto px-4 pb-8" style="max-width: var(--w-wide)">
+		<!-- ── Masthead ─────────────────────────────────────────────── -->
+		<section class="py-16 sm:py-24">
+			<p class="meta" data-reveal>Manchester, UK</p>
 
-        <!-- Clients -->
-        <ClientList />
+			<h1 class="mt-5 font-heading" data-reveal style="--reveal-delay: 60ms">
+				Shedrack Akintayo
+			</h1>
 
-        <!-- Projects -->
-        <ProjectList />
+			<p
+				class="mt-5 text-[length:var(--step-1)] text-muted-foreground"
+				data-reveal
+				style="--reveal-delay: 110ms"
+			>
+				Senior Technical Writer &middot; DevOps Engineer &middot; CNCF Ambassador &middot; UK
+				Global Talent
+			</p>
 
-        <!-- Latest Posts -->
-        <section class="py-10 sm:py-16">
-            <h2 class="mb-8 text-xl font-medium tracking-tight">Latest posts</h2>
-            <PostList posts={sortedPosts} limit={5} />
-            <a
-                href="/blog"
-                class="group mt-10 inline-flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-                View all posts
-                <span class="transition-transform group-hover:translate-x-1">→</span>
-            </a>
-        </section>
-    </div>
+			<div
+				class="rule mt-10 grid gap-x-16 gap-y-8 pt-8 md:grid-cols-[1fr_auto]"
+				data-reveal
+				style="--reveal-delay: 160ms"
+			>
+				<div
+					class="space-y-5 text-[length:var(--step-0)] leading-relaxed text-muted-foreground"
+					style="max-width: var(--w-prose)"
+				>
+					<p>
+						I build documentation that works for two audiences at once:
+						developers reading it, and AI agents retrieving from it. With <a
+							href="https://kontinuo.dev"
+							target="_blank"
+							rel="noopener noreferrer"
+							class="link-draw text-foreground">Kontinuo</a
+						>, I built a local-first MCP continuity layer that carries
+						evidence-backed work across tools and sessions.
+					</p>
+					<p>
+						Off the keyboard, I'm a dedicated athlete, cross-training in
+						strength, Muay Thai, running, and football. I approach sports with
+						the same discipline I bring to engineering.
+					</p>
+				</div>
+
+				<!-- Standfirst rail -->
+				<dl class="flex gap-10 md:flex-col md:gap-6">
+					<div>
+						<dt class="meta">Writing</dt>
+						<dd class="mt-1 font-heading text-[length:var(--step-2)] tabular-nums">
+							{sortedPosts.length}
+						</dd>
+					</div>
+					<div>
+						<dt class="meta">Talks</dt>
+						<dd class="mt-1 font-heading text-[length:var(--step-2)] tabular-nums">
+							{talksByDate.length}
+						</dd>
+					</div>
+				</dl>
+			</div>
+		</section>
+
+		<!-- ── 01 Writing ───────────────────────────────────────────── -->
+		<section class="py-12 sm:py-16">
+			<SectionHeading
+				index="01"
+				title="Writing"
+				dek="On AI, DevOps, cloud native and technical writing."
+				href="/blog"
+				linkLabel={`All ${sortedPosts.length} posts`}
+			/>
+			<div class="mt-6">
+				<PostList posts={sortedPosts} limit={5} />
+			</div>
+		</section>
+
+		<!-- ── 02 Talks ─────────────────────────────────────────────── -->
+		<section class="py-12 sm:py-16">
+			<SectionHeading
+				index="02"
+				title="Talks & Videos"
+				dek="Conference sessions, livestreams and long conversations."
+				href="/talks"
+				linkLabel={`All ${talksByDate.length} recordings`}
+			/>
+			<div class="mt-10 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+				{
+					featuredTalks.map((talk, i) => (
+						<div data-reveal style={`--reveal-delay: ${i * 70}ms`}>
+							<TalkCard talk={talk} />
+						</div>
+					))
+				}
+			</div>
+		</section>
+
+		<!-- ── 03 Projects ──────────────────────────────────────────── -->
+		<ProjectList index="03" />
+
+		<!-- ── 04 Clients ───────────────────────────────────────────── -->
+		<ClientList index="04" />
+	</div>
 </Layout>

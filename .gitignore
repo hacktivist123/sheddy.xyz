@@ -26,4 +26,4 @@ pnpm-debug.log*
 # local agent runtime files
 .gstack/
 .superpowers/
-docs/superpowers/
+docs/

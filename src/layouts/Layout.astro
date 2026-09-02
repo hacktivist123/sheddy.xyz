@@ -21,7 +21,7 @@ interface Props {
 
 const {
 	title,
-	description = "Shedrack Akintayo - DevOps Engineer & Technical Writer",
+	description = "Shedrack Akintayo \u2014 Senior Technical Writer and Docs Lead. Kubernetes, cloud native, and documentation AI agents can actually use.",
 	ogImage,
 	ogType = "website",
 } = Astro.props;
@@ -42,9 +42,9 @@ const absoluteOgImage = ogImage ? new URL(ogImage, siteUrl).href : undefined;
 		  const value = localStorage.getItem(THEME_STORAGE_KEY);
 		  return value === 'light' || value === 'dark' || value === 'system'
 			? value
-			: 'system';
+			: 'dark';
 		} catch {
-		  return 'system';
+		  return 'dark';
 		}
 	  };
 
@@ -68,8 +68,18 @@ const absoluteOgImage = ogImage ? new URL(ogImage, siteUrl).href : undefined;
 		}
 	  };
 
-	  applyTheme();
-	  document.addEventListener('astro:after-swap', applyTheme);
+	  const applyPageState = () => {
+		applyTheme();
+
+		// Opt the scroll-entrance styles in only when JS is running, so a failed
+		// or blocked script can never leave content stuck at opacity: 0. Astro's
+		// router replaces <html>, so restore this marker after every page swap.
+		document.documentElement.classList.add('js-reveal');
+	  };
+
+	  applyPageState();
+
+	  document.addEventListener('astro:after-swap', applyPageState);
 	  window.addEventListener('theme:change', applyTheme);
 	  window
 		.matchMedia('(prefers-color-scheme: dark)')
@@ -165,6 +175,36 @@ const absoluteOgImage = ogImage ? new URL(ogImage, siteUrl).href : undefined;
 
       enhanceCodeBlocks();
       document.addEventListener('astro:page-load', enhanceCodeBlocks);
+    </script>
+    <script is:inline>
+      // Staggered scroll entrance for [data-reveal] elements. Runs once per
+      // element, and is skipped entirely when the reader prefers reduced motion.
+      const setupReveals = () => {
+        const targets = document.querySelectorAll('[data-reveal]:not(.is-revealed)');
+        if (!targets.length) return;
+
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reduced || !('IntersectionObserver' in window)) {
+          for (const el of targets) el.classList.add('is-revealed');
+          return;
+        }
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (!entry.isIntersecting) continue;
+              entry.target.classList.add('is-revealed');
+              observer.unobserve(entry.target);
+            }
+          },
+          { rootMargin: '0px 0px -8% 0px', threshold: 0.05 },
+        );
+
+        for (const el of targets) observer.observe(el);
+      };
+
+      setupReveals();
+      document.addEventListener('astro:page-load', setupReveals);
     </script>
   </body>
 </html>

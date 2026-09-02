@@ -1,4 +1,4 @@
-import { FileText, Home, Laptop, Moon, Sun, User } from "lucide-react";
+import { FileText, Home, Laptop, Moon, Play, Sun, User } from "lucide-react";
 import * as React from "react";
 import {
 	CommandDialog,
@@ -72,6 +72,12 @@ export function CommandMenu() {
 					>
 						<FileText className="mr-2 h-4 w-4" />
 						<span>Blog</span>
+					</CommandItem>
+					<CommandItem
+						onSelect={() => runCommand(() => (window.location.href = "/talks"))}
+					>
+						<Play className="mr-2 h-4 w-4" />
+						<span>Talks &amp; Videos</span>
 					</CommandItem>
 					<CommandItem
 						onSelect={() => runCommand(() => (window.location.href = "/about"))}

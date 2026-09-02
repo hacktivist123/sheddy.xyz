@@ -7,6 +7,8 @@
 @theme inline {
 	--font-sans: "Zen Kaku Gothic New", sans-serif;
 	--font-heading: "Shippori Mincho", serif;
+	--font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas,
+		"Liberation Mono", monospace;
 
 	--radius-sm: calc(var(--radius) - 4px);
 	--radius-md: calc(var(--radius) - 2px);
@@ -50,71 +52,73 @@
 
 :root {
 	--radius: 0.625rem;
-	--background: oklch(0.975 0.013 84);
-	--foreground: oklch(0.24 0.02 43);
-	--card: oklch(0.987 0.01 84);
-	--card-foreground: oklch(0.24 0.02 43);
-	--popover: oklch(0.987 0.01 84);
-	--popover-foreground: oklch(0.24 0.02 43);
+	/* Sage paper and ink, shared by the site and its navigation. */
+	--background: oklch(0.896 0.014 122);
+	--foreground: oklch(0.205 0.006 95);
+	--card: oklch(0.948 0.011 95);
+	--card-foreground: oklch(0.205 0.006 95);
+	--popover: oklch(0.982 0.006 95);
+	--popover-foreground: oklch(0.205 0.006 95);
 	--primary: oklch(0.43 0.086 230);
-	--primary-foreground: oklch(0.975 0.013 84);
-	--secondary: oklch(0.945 0.012 84);
-	--secondary-foreground: oklch(0.3 0.018 43);
-	--muted: oklch(0.952 0.009 84);
-	--muted-foreground: oklch(0.48 0.015 54);
-	--accent: oklch(0.92 0.028 222);
-	--accent-foreground: oklch(0.29 0.04 225);
+	--primary-foreground: oklch(0.982 0.006 95);
+	--secondary: oklch(0.948 0.011 95);
+	--secondary-foreground: oklch(0.308 0.004 107);
+	--muted: oklch(0.948 0.011 95);
+	--muted-foreground: oklch(0.478 0.008 95);
+	--accent: oklch(0.948 0.011 95);
+	--accent-foreground: oklch(0.205 0.006 95);
 	--destructive: oklch(0.577 0.245 27.325);
-	--border: oklch(0.89 0.01 83);
-	--input: oklch(0.89 0.01 83);
-	--ring: oklch(0.62 0.06 228);
+	--border: oklch(0.853 0.014 98);
+	--input: oklch(0.853 0.014 98);
+	--ring: oklch(0.54 0.08 230);
 	--chart-1: oklch(0.646 0.222 41.116);
 	--chart-2: oklch(0.6 0.118 184.704);
 	--chart-3: oklch(0.398 0.07 227.392);
 	--chart-4: oklch(0.828 0.189 84.429);
 	--chart-5: oklch(0.769 0.188 70.08);
-	--sidebar: oklch(0.985 0 0);
-	--sidebar-foreground: oklch(0.145 0 0);
-	--sidebar-primary: oklch(0.205 0 0);
-	--sidebar-primary-foreground: oklch(0.985 0 0);
-	--sidebar-accent: oklch(0.97 0 0);
-	--sidebar-accent-foreground: oklch(0.205 0 0);
-	--sidebar-border: oklch(0.922 0 0);
-	--sidebar-ring: oklch(0.708 0 0);
+	--sidebar: var(--card);
+	--sidebar-foreground: var(--foreground);
+	--sidebar-primary: var(--primary);
+	--sidebar-primary-foreground: var(--primary-foreground);
+	--sidebar-accent: var(--accent);
+	--sidebar-accent-foreground: var(--accent-foreground);
+	--sidebar-border: var(--border);
+	--sidebar-ring: var(--ring);
 }
 
 .dark {
-	--background: oklch(0.19 0.012 40);
-	--foreground: oklch(0.94 0.01 84);
-	--card: oklch(0.24 0.012 40);
-	--card-foreground: oklch(0.94 0.01 84);
-	--popover: oklch(0.24 0.012 40);
-	--popover-foreground: oklch(0.94 0.01 84);
-	--primary: oklch(0.82 0.04 228);
-	--primary-foreground: oklch(0.2 0.012 40);
-	--secondary: oklch(0.28 0.008 40);
-	--secondary-foreground: oklch(0.94 0.01 84);
-	--muted: oklch(0.28 0.008 40);
-	--muted-foreground: oklch(0.74 0.01 80);
-	--accent: oklch(0.33 0.05 228);
-	--accent-foreground: oklch(0.95 0.01 84);
+	/* The dark theme stays warm and lifted above black. */
+	--background: oklch(0.31 0.016 122);
+	--foreground: oklch(0.935 0.008 95);
+	--card: oklch(0.27 0.01 80);
+	--card-foreground: oklch(0.935 0.008 95);
+	--popover: oklch(0.27 0.01 80);
+	--popover-foreground: oklch(0.935 0.008 95);
+	--primary: oklch(0.8 0.04 228);
+	--primary-foreground: oklch(0.225 0.008 80);
+	--secondary: oklch(0.3 0.01 80);
+	--secondary-foreground: oklch(0.935 0.008 95);
+	--muted: oklch(0.3 0.01 80);
+	--muted-foreground: oklch(0.72 0.01 90);
+	--accent: oklch(0.36 0.018 122);
+	--accent-foreground: oklch(0.935 0.008 95);
 	--destructive: oklch(0.704 0.191 22.216);
-	--border: oklch(0.94 0.01 84 / 12%);
-	--input: oklch(0.94 0.01 84 / 18%);
+	--border: oklch(0.935 0.008 95 / 14%);
+	--input: oklch(0.935 0.008 95 / 20%);
 	--ring: oklch(0.67 0.05 228);
 	--chart-1: oklch(0.488 0.243 264.376);
 	--chart-2: oklch(0.696 0.17 162.48);
 	--chart-3: oklch(0.769 0.188 70.08);
 	--chart-4: oklch(0.627 0.265 303.9);
 	--chart-5: oklch(0.645 0.246 16.439);
-	--sidebar: oklch(0.205 0 0);
-	--sidebar-foreground: oklch(0.985 0 0);
-	--sidebar-primary: oklch(0.488 0.243 264.376);
-	--sidebar-primary-foreground: oklch(0.985 0 0);
-	--sidebar-accent: oklch(0.269 0 0);
-	--sidebar-accent-foreground: oklch(0.985 0 0);
-	--sidebar-border: oklch(1 0 0 / 10%);
-	--sidebar-ring: oklch(0.556 0 0);
+	--sidebar: var(--card);
+	--sidebar-foreground: var(--foreground);
+	--sidebar-primary: var(--primary);
+	--sidebar-primary-foreground: var(--primary-foreground);
+	--sidebar-accent: var(--accent);
+	--sidebar-accent-foreground: var(--accent-foreground);
+	--sidebar-border: var(--border);
+	--sidebar-ring: var(--ring);
 }
 
 @layer base {
@@ -125,12 +129,6 @@
 		@apply bg-background text-foreground font-sans antialiased;
 		font-size: 1.0625rem;
 		line-height: 1.65;
-		background-image: radial-gradient(
-			120% 85% at 50% 0%,
-			oklch(0.9 0.03 225 / 0.35) 0%,
-			transparent 55%
-		);
-		background-attachment: fixed;
 	}
 	h1,
 	h2,
@@ -144,13 +142,6 @@
 		line-height: 1.16;
 		text-wrap: balance;
 	}
-	.dark body {
-		background-image: radial-gradient(
-			120% 85% at 50% 0%,
-			oklch(0.34 0.06 225 / 0.32) 0%,
-			transparent 55%
-		);
-	}
 	@media (prefers-reduced-motion: reduce) {
 		*,
 		::before,
@@ -160,5 +151,184 @@
 			transition-duration: 0.01ms;
 			scroll-behavior: auto;
 		}
+	}
+}
+
+/* ---------------------------------------------------------------------------
+   Editorial system
+   Type ramp, width ladder and motion budget. See docs/editorial-redesign-research.md
+   for the reference research these values were derived from.
+   --------------------------------------------------------------------------- */
+
+:root {
+	/* Fluid type ramp — one continuous scale, no breakpoint jumps. */
+	--step--1: clamp(0.78rem, 0.76rem + 0.1vw, 0.83rem);
+	--step-0: clamp(1rem, 0.97rem + 0.15vw, 1.0625rem);
+	--step-1: clamp(1.15rem, 1.09rem + 0.3vw, 1.32rem);
+	--step-2: clamp(1.35rem, 1.24rem + 0.55vw, 1.7rem);
+	--step-3: clamp(1.65rem, 1.42rem + 1.1vw, 2.35rem);
+	--step-4: clamp(2.05rem, 1.6rem + 2.2vw, 3.4rem);
+	--step-5: clamp(2.5rem, 1.6rem + 4.4vw, 5rem);
+
+	/* Width ladder — every container is a deliberate step. */
+	/* Reading measure. Defined in rem, not ch, so header and body resolve to
+	   the same width even though the prose scope sets its own font-size. */
+	--w-prose: 36rem;
+	--w-text: 46rem;
+	--w-page: 62rem;
+	--w-wide: 76rem;
+
+	/* Motion budget: named curves, short interaction timings. */
+	--ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+	--ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+	--ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+	--ease-ui: var(--ease-out);
+	--ease-entrance: cubic-bezier(0.16, 1, 0.3, 1);
+	--dur-fast: 160ms;
+	--dur-ui: 220ms;
+	--dur-nav: 260ms;
+	--dur-entrance: 260ms;
+
+	/* Editorial hairline, lighter than the component border. */
+	--rule: oklch(0.205 0.006 95 / 0.14);
+	--rule-strong: oklch(0.205 0.006 95 / 0.34);
+
+	/* Navigation inherits the same palette as the rest of the site. */
+	--nav-surface: var(--background);
+	--nav-foreground: var(--foreground);
+	--nav-muted: var(--muted-foreground);
+	--nav-rule: var(--rule-strong);
+}
+
+.dark {
+	--rule: oklch(0.935 0.008 95 / 0.14);
+	--rule-strong: oklch(0.935 0.008 95 / 0.38);
+	--nav-surface: var(--background);
+	--nav-foreground: var(--foreground);
+	--nav-muted: var(--muted-foreground);
+	--nav-rule: var(--rule-strong);
+}
+
+@layer base {
+	/* Optical sizing: tracking tightens and leading closes as type grows. */
+	h1 {
+		font-size: var(--step-4);
+		letter-spacing: -0.028em;
+		line-height: 1.06;
+	}
+	h2 {
+		font-size: var(--step-2);
+		letter-spacing: -0.02em;
+		line-height: 1.15;
+	}
+	h3 {
+		font-size: var(--step-1);
+		letter-spacing: -0.015em;
+		line-height: 1.25;
+	}
+
+	::selection {
+		background: var(--accent);
+		color: var(--accent-foreground);
+	}
+
+	:focus-visible {
+		outline: 2px solid var(--ring);
+		outline-offset: 3px;
+		border-radius: 2px;
+	}
+}
+
+@layer components {
+	/* --- Metadata voice -------------------------------------------------- */
+	.meta {
+		font-family: var(--font-mono);
+		font-size: 0.7rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		font-variant-numeric: tabular-nums;
+		color: var(--muted-foreground);
+	}
+
+	.numeral {
+		font-family: var(--font-mono);
+		font-variant-numeric: tabular-nums;
+		font-size: 0.7rem;
+		letter-spacing: 0.06em;
+		color: var(--muted-foreground);
+	}
+
+	/* --- Editorial hairline ---------------------------------------------- */
+	.rule {
+		border-top: 1px solid var(--rule);
+	}
+
+	/* --- Index row: rule wipes in on hover -------------------------------- */
+	.row {
+		position: relative;
+	}
+	.row::after {
+		content: "";
+		position: absolute;
+		left: 0;
+		bottom: -1px;
+		height: 1px;
+		width: 100%;
+		background: var(--rule-strong);
+		transform: scaleX(0);
+		transform-origin: left;
+		transition: transform var(--dur-ui) var(--ease-ui);
+	}
+	.row:hover::after,
+	.row:focus-within::after {
+		transform: scaleX(1);
+	}
+
+	/* --- Link with a rule that draws under it ----------------------------- */
+	.link-draw {
+		background-image: linear-gradient(currentColor, currentColor);
+		background-repeat: no-repeat;
+		background-position: 0 100%;
+		background-size: 0% 1px;
+		transition: background-size var(--dur-ui) var(--ease-ui);
+	}
+	.link-draw:hover,
+	.link-draw:focus-visible,
+	/* The whole row/card is the hit target, so hovering anywhere in the
+	   enclosing link draws the rule under its title. */
+	a:hover .link-draw,
+	a:focus-visible .link-draw {
+		background-size: 100% 1px;
+	}
+
+	/* --- Scroll entrance --------------------------------------------------
+	   Scoped to .js-reveal (set on <html> by the head script) so the hidden
+	   start state only ever exists when JavaScript is there to undo it. */
+	.js-reveal [data-reveal] {
+		opacity: 0;
+		transform: translateY(8px);
+		transition:
+			opacity var(--dur-entrance) var(--ease-entrance),
+			transform var(--dur-entrance) var(--ease-entrance);
+		transition-delay: var(--reveal-delay, 0ms);
+	}
+	.js-reveal [data-reveal].is-revealed {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+/* Motion is subtractable: everything resolves to its final state. */
+@media (prefers-reduced-motion: reduce) {
+	.js-reveal [data-reveal] {
+		opacity: 1;
+		transform: none;
+		transition: none;
+	}
+	.row::after {
+		transition: none;
+	}
+	.link-draw {
+		transition: none;
 	}
 }

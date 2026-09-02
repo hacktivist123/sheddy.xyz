@@ -1,0 +1,130 @@
+---
+import SectionHeading from "../../components/SectionHeading.astro";
+import TalkCard from "../../components/TalkCard.astro";
+import TalkRow from "../../components/TalkRow.astro";
+import { kindLabel, type TalkKind, talksByDate } from "../../data/talks";
+import Layout from "../../layouts/Layout.astro";
+
+const featured = talksByDate.filter((t) => t.featured).slice(0, 6);
+const featuredIds = new Set(featured.map((t) => t.id));
+const rest = talksByDate.filter((t) => !featuredIds.has(t.id));
+
+const kindOrder: TalkKind[] = ["talk", "stream", "tutorial", "conversation"];
+const counts = kindOrder
+	.map((kind) => ({
+		kind,
+		count: talksByDate.filter((t) => t.kind === kind).length,
+	}))
+	.filter(({ count }) => count > 0);
+
+const years = talksByDate.map((t) => Number(t.date.slice(0, 4)));
+const span = `${Math.min(...years)}–${Math.max(...years)}`;
+// Excludes the two segment entries, whose own length isn't known from the
+// full recording's runtime.
+const fullRecordings = talksByDate.filter((t) => !t.startAt);
+const totalHours = Math.round(
+	fullRecordings.reduce((sum, t) => sum + t.seconds, 0) / 3600,
+);
+---
+
+<Layout
+	title="Talks & Videos - Shedrack Akintayo"
+	description="Conference talks, livestreams, tutorials and interviews by Shedrack Akintayo, on Kubernetes, eBPF, developer relations, technical writing and JavaScript."
+>
+	<div class="mx-auto px-4 py-16 sm:py-24" style="max-width: var(--w-wide)">
+		<!-- Masthead -->
+		<header class="mb-16 sm:mb-24">
+			<p class="meta">Section 04</p>
+			<h1 class="mt-4 font-heading">Talks &amp; Videos</h1>
+			<p
+				class="mt-6 text-[length:var(--step-1)] leading-relaxed text-muted-foreground"
+				style="max-width: 46ch"
+			>
+				Conference sessions, livestreams, tutorials and long conversations —
+				on cloud native networking, developer relations, and the craft of
+				explaining technical things.
+			</p>
+
+			<dl class="rule mt-10 grid grid-cols-2 gap-x-8 gap-y-5 pt-6 sm:grid-cols-4">
+				<div>
+					<dt class="meta">Recordings</dt>
+					<dd class="mt-1.5 font-heading text-[length:var(--step-2)]">
+						{talksByDate.length}
+					</dd>
+				</div>
+				<div>
+					<dt class="meta">Years</dt>
+					<dd class="mt-1.5 font-heading text-[length:var(--step-2)] tabular-nums">
+						{span}
+					</dd>
+				</div>
+				<div>
+					<dt class="meta">Runtime</dt>
+					<dd class="mt-1.5 font-heading text-[length:var(--step-2)]">
+						~{totalHours}h
+					</dd>
+					<dd class="numeral mt-1 normal-case">
+						across {fullRecordings.length} full recordings
+					</dd>
+				</div>
+				<div>
+					<dt class="meta">Formats</dt>
+					<dd class="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+						{counts.map(({ kind, count }) => `${kindLabel[kind]} ${count}`).join(" · ")}
+					</dd>
+				</div>
+			</dl>
+		</header>
+
+		<!-- Selected -->
+		<section class="mb-20 sm:mb-28">
+			<SectionHeading
+				index="01"
+				title="Selected"
+				dek="The sessions worth starting with."
+			/>
+
+			<div class="mt-10 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+				{
+					featured.map((talk, i) => (
+						<div data-reveal style={`--reveal-delay: ${Math.min(i, 8) * 60}ms`}>
+							<TalkCard talk={talk} />
+						</div>
+					))
+				}
+			</div>
+		</section>
+
+		<!-- Full archive -->
+		<section>
+			<SectionHeading
+				index="02"
+				title="Everything"
+				dek={`All ${talksByDate.length} recordings, most recent first.`}
+			/>
+
+			<ul class="mt-6 flex flex-col">
+				{
+					rest.map((talk, i) => (
+						<li
+							class="rule first:border-t-0"
+							data-reveal
+							style={`--reveal-delay: ${Math.min(i, 10) * 35}ms`}
+						>
+							<TalkRow talk={talk} />
+						</li>
+					))
+				}
+			</ul>
+
+			<p class="rule mt-10 pt-6 text-sm text-muted-foreground">
+				Also collected as a playlist on <a
+					href="https://www.youtube.com/playlist?list=PLsGzjZLGKzenpCCBLrjo70JjTBQdSXbcg"
+					target="_blank"
+					rel="noopener noreferrer"
+					class="link-draw text-foreground">YouTube</a
+				>.
+			</p>
+		</section>
+	</div>
+</Layout>

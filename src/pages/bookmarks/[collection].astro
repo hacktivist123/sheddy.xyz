@@ -45,7 +45,7 @@ const { collection, items } = Astro.props;
   title={`${collection.title} Bookmarks - Shedrack Akintayo`}
   description={collection.description}
 >
-  <div class="container mx-auto max-w-6xl px-4 py-16">
+  <div class="mx-auto px-4 py-16 sm:py-24" style="max-width: var(--w-wide)">
     <div class="mx-auto max-w-4xl py-6 sm:py-10">
       <a href="/bookmarks" data-astro-prefetch="hover" class="text-sm text-muted-foreground transition-colors hover:text-foreground">
         &larr; Back to folders
@@ -57,7 +57,7 @@ const { collection, items } = Astro.props;
         </p>
         <div class="mt-5 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div class="max-w-2xl">
-            <h1 class="text-4xl font-semibold tracking-tight sm:text-5xl">
+            <h1 class="font-heading">
               {collection.title}
             </h1>
             <p class="mt-4 text-lg leading-relaxed text-muted-foreground">

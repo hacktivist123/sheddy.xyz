@@ -1,4 +1,12 @@
 ---
+import SectionHeading from "./SectionHeading.astro";
+
+interface Props {
+	index?: string;
+}
+
+const { index } = Astro.props;
+
 const clients = [
 	{ name: "Traefik Labs", url: "https://traefik.io" },
 	{ name: "Isovalent", url: "https://isovalent.com" },
@@ -11,25 +19,35 @@ const clients = [
 	{ name: "Lumigo", url: "https://lumigo.io" },
 	{ name: "Stackbit", url: "https://www.netlify.com/integrations/stackbit/" },
 	{ name: "Evervault", url: "https://evervault.com" },
+	{ name: "Keel", url: "https://keel.so" },
 ];
 ---
 
-<section class="py-16">
-    <h2 class="mb-8 text-sm font-medium tracking-tight text-foreground">Employers & clients</h2>
-    <ul class="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3 md:grid-cols-4">
-        {
-            clients.map((client) => (
-                <li>
-                    <a
-                        href={client.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="inline-block text-sm text-muted-foreground transition-colors hover:text-foreground hover:underline underline-offset-4"
-                    >
-                        {client.name}
-                    </a>
-                </li>
-            ))
-        }
-    </ul>
+<section class="py-12 sm:py-16">
+	<SectionHeading
+		index={index}
+		title="Employers & clients"
+		dek="Places whose docs, content or developer programs I've built."
+	/>
+
+	<ul
+		class="mt-8 grid grid-cols-2 gap-x-8 gap-y-3 sm:grid-cols-3 md:grid-cols-4"
+		data-reveal
+	>
+		{
+			clients.map((client) => (
+				<li>
+					<a
+						href={client.url}
+						target="_blank"
+						rel="noopener noreferrer"
+						class="inline-block text-sm text-muted-foreground transition-colors duration-[160ms] hover:text-foreground"
+						style="transition-timing-function: var(--ease-ui)"
+					>
+						<span class="link-draw">{client.name}</span>
+					</a>
+				</li>
+			))
+		}
+	</ul>
 </section>
