@@ -1,9 +1,4 @@
 ---
-/**
- * Editorial index: each row is a title + dek couplet against a fixed mono date
- * rail. The hairline under a row wipes in on hover; the date rail nudges and
- * gains contrast with it.
- */
 interface Post {
 	id: string;
 	data: {
@@ -16,7 +11,6 @@ interface Post {
 interface Props {
 	posts: Post[];
 	limit?: number;
-	/** Stagger the scroll-entrance of each row */
 	reveal?: boolean;
 }
 

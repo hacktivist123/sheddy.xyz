@@ -38,7 +38,6 @@ const isActive = (href: string) =>
 			<span class="hidden sm:inline">Shedrack Akintayo</span>
 		</a>
 
-		<!-- A usable navigation remains when JavaScript is unavailable. -->
 		<nav class="site-header__fallback" aria-label="Primary navigation">
 			{
 				primaryLinks.slice(1).map((link) => (
@@ -217,8 +216,7 @@ const isActive = (href: string) =>
 			dialog.classList.remove('is-open');
 			document.documentElement.classList.remove('nav-open');
 			openButton.setAttribute('aria-expanded', 'false');
-			// transitionend is the normal path; the timeout covers a hidden tab.
-			closeFallback = window.setTimeout(finishClose, 400);
+			closeFallback = window.setTimeout(finishClose, 900);
 		};
 
 		openButton.addEventListener('click', openNavigation);
@@ -350,7 +348,7 @@ const isActive = (href: string) =>
 	.menu-button__lines > span {
 		position: absolute;
 		left: 0;
-		top: 50%;
+		top: calc(50% - 0.5px);
 		width: 100%;
 		height: 1px;
 		background: currentColor;
@@ -388,7 +386,8 @@ const isActive = (href: string) =>
 		background: transparent;
 		color: var(--nav-foreground);
 		clip-path: inset(0 0 100% 0);
-		transition: clip-path var(--dur-nav) var(--ease-drawer);
+		transition: clip-path var(--dur-nav-close) var(--ease-nav)
+			var(--delay-nav-close);
 	}
 
 	.site-nav::backdrop {
@@ -397,6 +396,12 @@ const isActive = (href: string) =>
 
 	.site-nav.is-open {
 		clip-path: inset(0);
+		transition: clip-path var(--dur-nav) var(--ease-nav) 0ms;
+	}
+
+	.site-nav__surface {
+		position: fixed;
+		inset: 0;
 	}
 
 	.site-nav__surface {
@@ -501,30 +506,36 @@ const isActive = (href: string) =>
 		grid-area: primary;
 	}
 
-	.site-nav__primary li {
+	.site-nav__primary li,
+	.site-nav__utility nav,
+	.site-nav__identity,
+	.site-nav__footer > * {
 		opacity: 0;
-		transform: translateY(0.625rem);
+		transform: translateY(0.75rem);
 		transition:
-			opacity var(--dur-ui) var(--ease-out),
-			transform var(--dur-ui) var(--ease-out);
+			opacity var(--dur-nav-item-out) var(--ease-out),
+			transform var(--dur-nav-item-out) var(--ease-out);
 	}
 
-	.site-nav.is-open .site-nav__primary li {
+	.site-nav.is-open .site-nav__primary li,
+	.site-nav.is-open .site-nav__utility nav,
+	.site-nav.is-open .site-nav__identity,
+	.site-nav.is-open .site-nav__footer > * {
 		opacity: 1;
 		transform: none;
+		transition:
+			opacity var(--dur-nav-item) var(--ease-nav) var(--nav-item-delay, 0ms),
+			transform var(--dur-nav-item) var(--ease-nav) var(--nav-item-delay, 0ms);
 	}
 
-	.site-nav.is-open .site-nav__primary li:nth-child(2) {
-		transition-delay: 20ms;
-	}
-
-	.site-nav.is-open .site-nav__primary li:nth-child(3) {
-		transition-delay: 40ms;
-	}
-
-	.site-nav.is-open .site-nav__primary li:nth-child(4) {
-		transition-delay: 60ms;
-	}
+	.site-nav.is-open .site-nav__primary li:nth-child(1) { --nav-item-delay: 0ms; }
+	.site-nav.is-open .site-nav__primary li:nth-child(2) { --nav-item-delay: 30ms; }
+	.site-nav.is-open .site-nav__primary li:nth-child(3) { --nav-item-delay: 60ms; }
+	.site-nav.is-open .site-nav__primary li:nth-child(4) { --nav-item-delay: 90ms; }
+	.site-nav.is-open .site-nav__utility nav:nth-child(1) { --nav-item-delay: 30ms; }
+	.site-nav.is-open .site-nav__utility nav:nth-child(2) { --nav-item-delay: 60ms; }
+	.site-nav.is-open .site-nav__identity { --nav-item-delay: 30ms; }
+	.site-nav.is-open .site-nav__footer > * { --nav-item-delay: 60ms; }
 
 	.site-nav__primary a {
 		display: grid;
@@ -651,15 +662,24 @@ const isActive = (href: string) =>
 
 		.site-nav.is-open {
 			opacity: 1;
+			transition: opacity var(--dur-fast) var(--ease-out);
 		}
 
-		.site-nav__primary li {
+		.site-nav__primary li,
+		.site-nav__utility nav,
+		.site-nav__identity,
+		.site-nav__footer > *,
+		.site-nav.is-open .site-nav__primary li,
+		.site-nav.is-open .site-nav__utility nav,
+		.site-nav.is-open .site-nav__identity,
+		.site-nav.is-open .site-nav__footer > * {
 			opacity: 1;
 			transform: none;
 			transition: none;
 		}
 
-		.menu-button__lines > span {
+		.menu-button__lines > span,
+		.menu-button[aria-expanded="true"] .menu-button__lines > span {
 			transition: none;
 		}
 	}

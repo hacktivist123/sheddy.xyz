@@ -24,7 +24,6 @@ const span = `${Math.min(...years)}–${Math.max(...years)}`;
 	description="Essays and notes on AI, DevOps, cloud native systems and technical writing by Shedrack Akintayo."
 >
 	<div class="mx-auto px-4 py-16 sm:py-24" style="max-width: var(--w-wide)">
-		<!-- Masthead -->
 		<header class="mb-16">
 			<p class="meta">Section 01</p>
 			<h1 class="mt-4 font-heading">Writing</h1>
@@ -38,7 +37,6 @@ const span = `${Math.min(...years)}–${Math.max(...years)}`;
 			<p class="meta mt-8">{sortedPosts.length} posts &middot; {span}</p>
 		</header>
 
-		<!-- Lead article -->
 		{
 			lead && (
 				<section class="rule mb-14 pt-8" data-reveal>
@@ -73,7 +71,6 @@ const span = `${Math.min(...years)}–${Math.max(...years)}`;
 			)
 		}
 
-		<!-- Archive -->
 		<section>
 			<SectionHeading title="Archive" dek="Everything, most recent first." />
 			<div class="mt-6">

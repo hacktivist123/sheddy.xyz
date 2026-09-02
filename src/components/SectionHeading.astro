@@ -1,13 +1,7 @@
 ---
-/**
- * Contents-page section heading: mono numeral rail, serif title, optional
- * "see all" link, sitting on an editorial hairline.
- */
 interface Props {
-	/** Section numeral, e.g. "01" */
 	index?: string;
 	title: string;
-	/** Optional one-line description under the title */
 	dek?: string;
 	href?: string;
 	linkLabel?: string;
@@ -16,7 +10,7 @@ interface Props {
 const { index, title, dek, href, linkLabel } = Astro.props;
 ---
 
-<div class="rule flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 pt-4">
+<div class="rule rule-draw flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 pt-4" data-reveal>
 	<div class="flex items-baseline gap-4">
 		{index && <span class="numeral pt-1 select-none" aria-hidden="true">{index}</span>}
 		<div>

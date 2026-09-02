@@ -9,7 +9,6 @@ import {
 
 interface Props {
 	talk: Talk;
-	/** Larger treatment for the lead item in a grid */
 	lead?: boolean;
 }
 
@@ -27,52 +26,51 @@ function formatDate(iso: string): string {
 	href={watchUrl(talk)}
 	target="_blank"
 	rel="noopener noreferrer"
-	class="group flex flex-col gap-4"
+	class="talk-card flex flex-col gap-4"
 >
-	{/* Poster: fixed frame, image scales inside it. */}
 	<div
 		class="relative overflow-hidden rounded-lg bg-muted"
 		style="aspect-ratio: 16 / 9"
+		data-reveal="wipe"
 	>
-		<img
-			src={posterUrl(talk)}
-			alt=""
-			loading="lazy"
-			decoding="async"
-			width="480"
-			height="360"
-			class="h-full w-full object-cover transition-[transform,filter] duration-[260ms] grayscale-[0.25] group-hover:scale-[1.03] group-hover:grayscale-0"
-			style="transition-timing-function: var(--ease-entrance)"
-		/>
+		<div class="poster-wipe absolute inset-0">
+			<img
+				src={posterUrl(talk)}
+				alt=""
+				loading="lazy"
+				decoding="async"
+				width="480"
+				height="360"
+				class="talk-card__image h-full w-full object-cover grayscale-[0.25]"
+			/>
 
-		{/* Play badge: springs up on hover. */}
-		<span
-			class="absolute inset-0 flex items-center justify-center bg-background/0 transition-colors duration-[220ms] group-hover:bg-background/10"
-			style="transition-timing-function: var(--ease-ui)"
-			aria-hidden="true"
-		>
 			<span
-				class="flex h-11 w-11 translate-y-1 items-center justify-center rounded-full bg-background/85 opacity-0 shadow-sm backdrop-blur transition-[opacity,transform] duration-[220ms] group-hover:translate-y-0 group-hover:opacity-100"
-				style="transition-timing-function: var(--ease-entrance)"
+				class="talk-card__overlay absolute inset-0 flex items-center justify-center"
+				aria-hidden="true"
 			>
-				<svg
-					width="14"
-					height="16"
-					viewBox="0 0 14 16"
-					fill="currentColor"
-					class="ml-0.5 text-foreground"
-					aria-hidden="true"
+				<span class="talk-card__tint absolute inset-0 bg-background/10 opacity-0"></span>
+				<span
+					class="talk-card__play relative z-10 flex h-11 w-11 translate-y-1 items-center justify-center rounded-full bg-background/85 opacity-0 shadow-sm backdrop-blur"
 				>
-					<path d="M0 1.2v13.6a1 1 0 0 0 1.53.85l10.9-6.8a1 1 0 0 0 0-1.7L1.53.35A1 1 0 0 0 0 1.2Z"></path>
-				</svg>
+					<svg
+						width="14"
+						height="16"
+						viewBox="0 0 14 16"
+						fill="currentColor"
+						class="ml-0.5 text-foreground"
+						aria-hidden="true"
+					>
+						<path d="M0 1.2v13.6a1 1 0 0 0 1.53.85l10.9-6.8a1 1 0 0 0 0-1.7L1.53.35A1 1 0 0 0 0 1.2Z"></path>
+					</svg>
+				</span>
 			</span>
-		</span>
 
-		<span
-			class="absolute right-2 bottom-2 rounded bg-background/85 px-1.5 py-0.5 font-mono text-[0.65rem] tabular-nums text-foreground backdrop-blur"
-		>
-			{runtimeLabel(talk)}
-		</span>
+			<span
+				class="absolute right-2 bottom-2 rounded bg-background/85 px-1.5 py-0.5 font-mono text-[0.65rem] tabular-nums text-foreground backdrop-blur"
+			>
+				{runtimeLabel(talk)}
+			</span>
+		</div>
 	</div>
 
 	<div>
@@ -98,3 +96,57 @@ function formatDate(iso: string): string {
 		</p>
 	</div>
 </a>
+
+<style>
+	@media (hover: hover) and (pointer: fine) {
+		.talk-card__image {
+			transition:
+				transform var(--dur-entrance) var(--ease-entrance),
+				filter var(--dur-entrance) var(--ease-entrance);
+		}
+
+		.talk-card__tint {
+			transition: opacity var(--dur-ui) var(--ease-ui);
+		}
+
+		.talk-card__play {
+			transition:
+				opacity var(--dur-ui) var(--ease-entrance),
+				transform var(--dur-ui) var(--ease-entrance);
+		}
+
+		.talk-card:hover .talk-card__image {
+			filter: grayscale(0);
+			transform: scale(1.03);
+		}
+
+		.talk-card:hover .talk-card__tint {
+			opacity: 1;
+		}
+
+		.talk-card:hover .talk-card__play {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.talk-card__image {
+			transition: none;
+		}
+
+		.talk-card:hover .talk-card__image {
+			filter: grayscale(0);
+			transform: none;
+		}
+
+		.talk-card__tint,
+		.talk-card__play {
+			transition: opacity var(--dur-fast) var(--ease-out);
+		}
+
+		.talk-card__play {
+			transform: none;
+		}
+	}
+</style>

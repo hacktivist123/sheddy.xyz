@@ -71,9 +71,6 @@ const absoluteOgImage = ogImage ? new URL(ogImage, siteUrl).href : undefined;
 	  const applyPageState = () => {
 		applyTheme();
 
-		// Opt the scroll-entrance styles in only when JS is running, so a failed
-		// or blocked script can never leave content stuck at opacity: 0. Astro's
-		// router replaces <html>, so restore this marker after every page swap.
 		document.documentElement.classList.add('js-reveal');
 	  };
 
@@ -177,8 +174,6 @@ const absoluteOgImage = ogImage ? new URL(ogImage, siteUrl).href : undefined;
       document.addEventListener('astro:page-load', enhanceCodeBlocks);
     </script>
     <script is:inline>
-      // Staggered scroll entrance for [data-reveal] elements. Runs once per
-      // element, and is skipped entirely when the reader prefers reduced motion.
       const setupReveals = () => {
         const targets = document.querySelectorAll('[data-reveal]:not(.is-revealed)');
         if (!targets.length) return;

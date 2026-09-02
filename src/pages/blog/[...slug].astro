@@ -21,7 +21,6 @@ const { Content, remarkPluginFrontmatter } = await render(post);
 const ogImagePath = `/og/blog/${post.id.split("/").map(encodeURIComponent).join("/")}.png`;
 const minutesRead = remarkPluginFrontmatter.minutesRead;
 
-// Neighbours for the end-of-article rail.
 const all = (await getCollection("blog", ({ data }) => !data.draft)).sort(
 	(a, b) => b.data.date.getTime() - a.data.date.getTime(),
 );
@@ -47,7 +46,6 @@ function formatDate(date: Date): string {
 	<ReadingProgress client:load />
 
 	<article class="mx-auto px-4 py-16 sm:py-24" style="max-width: var(--w-wide)">
-		<!-- Article masthead -->
 		<header class="mx-auto" style="max-width: var(--w-prose)">
 			<p class="meta">
 				<a
@@ -94,7 +92,6 @@ function formatDate(date: Date): string {
 			</div>
 		</header>
 
-		<!-- Body -->
 		<div
 			class="prose prose-neutral dark:prose-invert mx-auto mt-14 prose-headings:font-heading prose-headings:font-semibold prose-headings:tracking-[-0.02em] prose-p:leading-[1.75] prose-li:leading-[1.75] prose-a:text-foreground prose-a:decoration-[color:var(--rule-strong)] prose-a:underline-offset-[3px] prose-a:transition-colors hover:prose-a:decoration-current prose-blockquote:border-l-[color:var(--rule-strong)] prose-blockquote:font-heading prose-blockquote:not-italic prose-blockquote:text-foreground prose-code:text-[0.9em] prose-pre:rounded-xl prose-pre:border prose-pre:border-[color:var(--rule)] prose-img:rounded-lg prose-img:border prose-img:border-[color:var(--rule)]"
 			style="max-width: var(--w-prose)"
@@ -102,7 +99,6 @@ function formatDate(date: Date): string {
 			<Content />
 		</div>
 
-		<!-- Continue reading -->
 		<footer class="mx-auto mt-20" style="max-width: var(--w-prose)">
 			<div class="rule pt-6">
 				<p class="meta">Continue</p>

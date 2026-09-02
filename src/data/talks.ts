@@ -1,34 +1,15 @@
-/**
- * Talks, streams and interviews featuring Shedrack Akintayo.
- *
- * Source: the "Shedrack's Talks & Videos" playlist
- * (PLsGzjZLGKzenpCCBLrjo70JjTBQdSXbcg). Every entry below was individually
- * verified as featuring Shedrack — via the video title, its description, the
- * host organisation's event page, or the companion article he authored.
- *
- * `startAt` marks the two multi-speaker recordings where only a segment is his;
- * the link jumps straight to that segment.
- */
 
 export type TalkKind = "talk" | "stream" | "tutorial" | "conversation";
 
 export interface Talk {
-	/** YouTube video id */
 	id: string;
-	/** Display title, cleaned of channel boilerplate */
 	title: string;
-	/** One-sentence standfirst */
 	dek: string;
-	/** Conference, publication or channel that published it */
 	event: string;
-	/** ISO date the recording was published */
 	date: string;
-	/** Runtime in seconds */
 	seconds: number;
 	kind: TalkKind;
-	/** Deep-link offset in seconds, for multi-speaker recordings */
 	startAt?: number;
-	/** Marks the small set shown on the homepage */
 	featured?: boolean;
 }
 
@@ -430,7 +411,6 @@ export function formatRuntime(seconds: number): string {
 	return hours > 0 ? `${hours}h ${minutes}m` : `${minutes} min`;
 }
 
-/** Timestamp of a segment's start, as H:MM:SS. */
 export function formatTimestamp(seconds: number): string {
 	const h = Math.floor(seconds / 3600);
 	const m = Math.floor((seconds % 3600) / 60);
@@ -438,10 +418,6 @@ export function formatTimestamp(seconds: number): string {
 	return `${h}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
 }
 
-/**
- * What to show in the runtime slot. For a segment of a multi-speaker recording
- * the full runtime would be misleading, so we show where the segment starts.
- */
 export function runtimeLabel(talk: Talk): string {
 	return talk.startAt
 		? `from ${formatTimestamp(talk.startAt)}`
